@@ -6,6 +6,7 @@
 """
 from datetime import datetime
 from functools import lru_cache
+from ginkgo.utils.tushare_client import ts_client
 import tushare as ts
 
 
@@ -27,11 +28,9 @@ class QuoteUtil:
             raise NotImplementedError
 
     @staticmethod
-    def load_calendar(start_date='2015-01-01', end_date=None, market='CN'):
+    def load_calendar(market='CN'):
 
         if market == 'CN':
-            return ts.get_hist_data(code='000001', start=start_date, end=end_date).index.to_series().apply(
-                lambda s: datetime.strptime(s, '%Y-%M-%d')
-            )
+            return ts_client.trade_cal(is_open=1)['cal_date']
         else:
             raise NotImplementedError
