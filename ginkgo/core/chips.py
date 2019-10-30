@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 """
-@author: fsksf
+@author: ksf
 @since: 2019-10-11 11:51
 筹码分布， CYQ
 """

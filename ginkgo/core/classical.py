@@ -15,7 +15,6 @@ class Classical:
 
     def __init__(self, open_arr, high_arr, low_arr, close_arr, volume_arr):
         """
-
         :param open_arr: array
                         1. 计算单个股票， 一位数据： shape(datetime_len, )
                         1. 计算多只股票， 二维数据： shape(datetime_len, symbols_len)
@@ -126,7 +125,6 @@ class Classical:
         E1 = self.moving_average(self._close_arr, n=mid_period)
         E2 = self.moving_average(self._close_arr, n=max_period)
 
-
         # 1、前8日中满足“E1<1日前的E1”的天数>=6
         is_min_5_growth = np.sum(np.diff(E1[-min_period-1:-1], 1) > 0) >= 6
         # 2、 今天的E1 > 昨天的E1
@@ -146,15 +144,22 @@ class Classical:
                is_mid_13_growth & condition_4 & f13.all(axis=0) & condition_6.all(axis=0) & \
                condition_7.all(axis=0) & condition_8 & condition_9
 
-    def rise_wrap_left(self):
-
+    def rise_wrap_fall(self):
+        """
+        阳包阴
+        :return:
+        """
         is_yesterday_fall = (self._close_arr[-2] < self._close_arr[-3]) & (self._close_arr[-2] < self._open_arr[-2])
-        is_today_rise = (self._close_arr[-1] > self._close_arr[-2]) & (self._close_arr[-1] < self._open_arr[-1])
+        is_today_rise = (self._close_arr[-1] > self._close_arr[-2]) & (self._close_arr[-1] > self._open_arr[-1])
         is_wrap = self._close_arr[-1] > self._open_arr[-2]
 
         return is_yesterday_fall & is_today_rise & is_wrap
 
-    def fall_wrap_left(self):
+    def fall_wrap_raise(self):
+        """
+        阴包阳
+        :return:
+        """
 
         is_yesterday_fall = (self._close_arr[-2] < self._close_arr[-3]) & (self._close_arr[-2] < self._open_arr[-2])
         is_today_rise = (self._close_arr[-1] > self._close_arr[-2]) & (self._close_arr[-1] > self._open_arr[-1])
@@ -170,11 +175,27 @@ class Classical:
 
         return is_yesterday_fall & is_today_rise & is_wrap
 
-    def golden_spider(self):
-        pass
+    def golden_spider(self, min_period=5, mid_period=10, max_period=20):
+        E1 = self.moving_average(self._close_arr, min_period)
+        E2 = self.moving_average(self._close_arr, mid_period)
+        E3 = self.moving_average(self._close_arr, max_period)
 
-    def dead_spider(self):
-        pass
+        condition_1 = E1[-1] > E2[-1]
+        condition_2 = E1[-2] < E2[-1]
+        condition_3 = E2[-1] > E3[-1]
+        condition_4 = E2[-2] < E3[-1]
+        return condition_1 & condition_2 & condition_3 & condition_4
+
+    def dead_spider(self, min_period=5, mid_period=10, max_period=20):
+        E1 = self.moving_average(self._close_arr, min_period)
+        E2 = self.moving_average(self._close_arr, mid_period)
+        E3 = self.moving_average(self._close_arr, max_period)
+
+        condition_1 = E1[-1] < E2[-1]
+        condition_2 = E1[-2] > E2[-1]
+        condition_3 = E2[-1] < E3[-1]
+        condition_4 = E2[-2] > E3[-1]
+        return condition_1 & condition_2 & condition_3 & condition_4
 
     @staticmethod
     def moving_average(a, n=3):
