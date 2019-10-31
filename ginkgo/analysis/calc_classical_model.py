@@ -31,55 +31,101 @@ class ClassicalModelManager(BaseCalcManager):
     def _store_init(self):
         self._data_store = []
 
-    def _store_update(self, type_name, data):
+    def _store_update(self, type_name, data, direction=1):
         if data:
             self._data_store.append({'metrics': type_name,
                                      'date': self._calc_date,
                                      'market': self._market,
+                                     'direction': direction,
                                      'data': data})
 
-    def calc_3_red_soldiers(self):
+    def _c_3_red_soldiers(self):
         type_name = 'three_red_soldiers'
         try:
-            is_red_soldiers_mask = self._calculator_instance.three_red_soldiers()
-            symbols = self._data_symbols[is_red_soldiers_mask].to_list()
-            self._store_update(type_name, symbols)
+            mask = self._calculator_instance.three_red_soldiers()
+            symbols = self._data_symbols[mask].to_list()
+            self._store_update(type_name, symbols, direction=1)
         except Exception as e:
             logger.error(e)
 
-    def calc_3_crow(self):
+    def _c__three_crow(self):
         type_name = 'three_crow'
         try:
-            is_three_crow_mask = self._calculator_instance.three_crow()
-            symbols = self._data_symbols[is_three_crow_mask].to_list()
-            self._store_update(type_name, symbols)
+            mask = self._calculator_instance.three_crow()
+            symbols = self._data_symbols[mask].to_list()
+            self._store_update(type_name, symbols, direction=-1)
         except Exception as e:
             logger.error(e)
 
-    def calc_multi_cannon(self):
+    def _c_multi_cannon(self):
         type_name = 'multi_cannon'
         try:
-            is_multi_cannon = self._calculator_instance.multi_cannon()
-            symbols = self._data_symbols[is_multi_cannon].to_list()
-            self._store_update(type_name, symbols)
+            mask = self._calculator_instance.multi_cannon()
+            symbols = self._data_symbols[mask].to_list()
+            self._store_update(type_name, symbols, direction=1)
         except Exception as e:
             logger.error(e)
 
-    def calc_morning_start(self):
+    def _c_morning_start(self):
         type_name = 'morning_start'
         try:
-            is_morning_start = self._calculator_instance.morning_start()
-            symbols = self._data_symbols[is_morning_start].to_list()
-            self._store_update(type_name, symbols)
+            mask = self._calculator_instance.morning_start()
+            symbols = self._data_symbols[mask].to_list()
+            self._store_update(type_name, symbols, direction=1)
         except Exception as e:
             logger.error(e)
 
-    def calc_duck_head(self):
+    def _c_duck_head(self):
         type_name = 'duck_head'
         try:
-            is_duck_head = self._calculator_instance.duck_head()
-            symbols = self._data_symbols[is_duck_head].to_list()
-            self._store_update(type_name, symbols)
+            mask = self._calculator_instance.duck_head()
+            symbols = self._data_symbols[mask].to_list()
+            self._store_update(type_name, symbols, direction=1)
+        except Exception as e:
+            logger.error(e)
+
+    def _c_rise_wrap_fall(self):
+        type_name = 'rise_wrap'
+        try:
+            mask = self._calculator_instance.rise_wrap_fall()
+            symbols = self._data_symbols[mask].to_list()
+            self._store_update(type_name, symbols, direction=1)
+        except Exception as e:
+            logger.error(e)
+
+    def _c_fall_wrap_raise(self):
+        type_name = 'fall_wrap_raise'
+        try:
+            mask = self._calculator_instance.fall_wrap_raise()
+            symbols = self._data_symbols[mask].to_list()
+            self._store_update(type_name, symbols, direction=-1)
+        except Exception as e:
+            logger.error(e)
+
+    def _c_rise_pregnant(self):
+        type_name = 'rise_pregnant'
+        try:
+            mask = self._calculator_instance.rise_pregnant_line()
+            symbols = self._data_symbols[mask].to_list()
+            self._store_update(type_name, symbols, direction=1)
+        except Exception as e:
+            logger.error(e)
+
+    def _c_golden_spider(self):
+        type_name = 'golden_spider'
+        try:
+            mask = self._calculator_instance.golden_spider()
+            symbols = self._data_symbols[mask].to_list()
+            self._store_update(type_name, symbols, direction=1)
+        except Exception as e:
+            logger.error(e)
+
+    def _c_dead_spider(self):
+        type_name = 'dead_spider'
+        try:
+            mask = self._calculator_instance.dead_spider()
+            symbols = self._data_symbols[mask].to_list()
+            self._store_update(type_name, symbols, direction=1)
         except Exception as e:
             logger.error(e)
 
@@ -100,19 +146,24 @@ class ClassicalModelManager(BaseCalcManager):
         symbols = list(symbols)
         self._data_symbols = pd.Index(symbols)
         self._datetime_index = pd.to_datetime(_open_df.index)
-        _open = _open_df.reindex(symbols, axis=1).to_numpy().T
-        _high = _high_df.reindex(symbols, axis=1).to_numpy().T
-        _low = _low_df.reindex(symbols, axis=1).to_numpy().T
-        _close = _close_df.reindex(symbols, axis=1).to_numpy().T
-        _volume = _volume_df.reindex(symbols, axis=1).to_numpy().T
+        _open = _open_df.reindex(symbols, axis=1).to_numpy()
+        _high = _high_df.reindex(symbols, axis=1).to_numpy()
+        _low = _low_df.reindex(symbols, axis=1).to_numpy()
+        _close = _close_df.reindex(symbols, axis=1).to_numpy()
+        _volume = _volume_df.reindex(symbols, axis=1).to_numpy()
 
-        logger.info('calc metrics start')
+        logger.info(f'calc metrics start, open shape: {_open.shape}')
         self._calculator_instance = Classical(_open, _high, _low, _close, _volume)
-        self.calc_3_red_soldiers()
-        self.calc_3_crow()
-        self.calc_multi_cannon()
-        self.calc_morning_start()
-        self.calc_duck_head()
+        self._c_3_red_soldiers()
+        self._c__three_crow()
+        self._c_multi_cannon()
+        self._c_morning_start()
+        self._c_duck_head()
+        self._c_rise_wrap_fall()
+        self._c_fall_wrap_raise()
+        self._c_rise_pregnant()
+        self._c_golden_spider()
+        self._c_dead_spider()
 
     def run(self, start_date=None, end_date=None, symbols=None, market='US', roll=False):
         logger.info(f'running with args end_date: {end_date}, symbols: {symbols}, market: {market}')
@@ -131,7 +182,7 @@ class ClassicalModelManager(BaseCalcManager):
                 if self._start_date is None:
                     raise ValueError('start_date required when roll is True')
                 self.roll_single_market(market)
-        # self.save(self._data_store)
+        self.save(self._data_store)
 
     def calc_single_market(self, market='US'):
         self._end_date = self._calc_date = self.get_real_trading_date(self._end_date, bar_count=1, market=market)
@@ -159,48 +210,7 @@ class ClassicalModelManager(BaseCalcManager):
             self._calc_date = dt.to_pydatetime()
             self.calc(period_data)
 
-        self._winning_probability()
+        logger.info('calc winning probability')
+        winning_data = self._winning_probability(self._data_store, self._start_date, self._end_date)
+        self.save_winning(winning_data)
 
-    def _winning_probability(self):
-        from collections import defaultdict
-        summery_metrics = defaultdict(list)
-        winning = defaultdict(lambda: list((0, 0, 0, 0)))
-        effect_end_date = self.get_real_trading_date(self._end_date, bar_count=-5, market=self._market)
-        for metrics in self._data_store:
-            summery_metrics[metrics['date']].append(metrics)
-
-        data = self.load_quote(None, start_date=self._start_date,
-                               end_date=effect_end_date, fields=('close', ), market=self._market)
-
-        data.set_index(['timestamp', 'symbol'], inplace=True)
-        data.sort_index(inplace=True)
-        data = data['close'].unstack()
-        logger.debug(f'data: {data.tail()}')
-        d1_pct_change = data.pct_change(1).shift(-1) > 0
-        d3_pct_change = data.pct_change(3).shift(-3) > 0
-        d5_pct_change = data.pct_change(5).shift(-5) > 0
-
-        logger.debug(f'd1_pct_change: {d1_pct_change.tail()}')
-
-        for dt, metrics in summery_metrics.items():
-            for m in metrics:
-                name = m['metrics']
-                symbols = m['data']
-                symbols_number = len(symbols)
-                try:
-                    d1_winning_count = d1_pct_change.loc[dt, symbols].sum()
-                    d3_winning_count = d3_pct_change.loc[dt, symbols].sum()
-                    d5_winning_count = d5_pct_change.loc[dt, symbols].sum()
-                    logger.debug((symbols_number, d1_winning_count, d3_winning_count, d5_winning_count))
-                    winning[name][0] += symbols_number
-                    winning[name][1] += d1_winning_count
-                    winning[name][2] += d3_winning_count
-                    winning[name][3] += d5_winning_count
-
-                except KeyError as e:
-                    logger.info(e)
-
-        print(winning)
-
-        for k, v in winning.items():
-            print(k, v[1] / v[0], v[2] / v[0], v[3]/v[0])
