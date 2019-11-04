@@ -9,7 +9,7 @@ from datetime import datetime
 import pandas as pd
 
 from ginkgo.core.classical import Classical
-from ginkgo.base_calc_manager import BaseCalcManager
+from ginkgo.analysis.base_calc_manager import BaseCalcManager
 from ginkgo.utils.logger import logger
 
 
@@ -29,17 +29,17 @@ class ClassicalModelManager(BaseCalcManager):
         self._store_init()
 
     def _store_init(self):
-        self._data_store = []
+        self._data_store = defaultdict(list)
 
     def _store_update(self, type_name, data, direction=1):
         if data:
-            self._data_store.append({'metrics': type_name,
-                                     'date': self._calc_date,
-                                     'market': self._market,
-                                     'direction': direction,
-                                     'data': data})
+            self._data_store[self._calc_date].append({'metrics': type_name,
+                                                      'date': self._calc_date,
+                                                      'market': self._market,
+                                                      'direction': direction,
+                                                      'data': data})
 
-    def _c_3_red_soldiers(self):
+    def _c_three_red_soldiers(self):
         type_name = 'three_red_soldiers'
         try:
             mask = self._calculator_instance.three_red_soldiers()
@@ -48,7 +48,7 @@ class ClassicalModelManager(BaseCalcManager):
         except Exception as e:
             logger.error(e)
 
-    def _c__three_crow(self):
+    def _c_three_crow(self):
         type_name = 'three_crow'
         try:
             mask = self._calculator_instance.three_crow()
@@ -154,8 +154,8 @@ class ClassicalModelManager(BaseCalcManager):
 
         logger.info(f'calc metrics start, open shape: {_open.shape}')
         self._calculator_instance = Classical(_open, _high, _low, _close, _volume)
-        self._c_3_red_soldiers()
-        self._c__three_crow()
+        self._c_three_red_soldiers()
+        self._c_three_crow()
         self._c_multi_cannon()
         self._c_morning_start()
         self._c_duck_head()
@@ -165,10 +165,10 @@ class ClassicalModelManager(BaseCalcManager):
         self._c_golden_spider()
         self._c_dead_spider()
 
-    def run(self, start_date=None, end_date=None, symbols=None, market='US', roll=False):
+    def run(self, end_date=None, symbols=None, market='US', winning_period=60, forecast_days=(1, 3, 5), winning=False):
         logger.info(f'running with args end_date: {end_date}, symbols: {symbols}, market: {market}')
         self._end_date = end_date if end_date else datetime.today().date()
-        self._start_date = start_date
+        # self._start_date = start_date
 
         if market == 'ALL':
             self.run(end_date, symbols, 'US')
@@ -176,13 +176,12 @@ class ClassicalModelManager(BaseCalcManager):
         else:
             self._market = market
             self._symbols = symbols                 # if symbols else self.load_symbols(market)
-            if not roll:
+            if not winning:
                 self.calc_single_market(market)
             else:
-                if self._start_date is None:
-                    raise ValueError('start_date required when roll is True')
-                self.roll_single_market(market)
-        self.save(self._data_store)
+                # if self._start_date is None:
+                #     raise ValueError('start_date required when roll is True')
+                self.calc_single_market_with_winning(winning_period, market)
 
     def calc_single_market(self, market='US'):
         self._end_date = self._calc_date = self.get_real_trading_date(self._end_date, bar_count=1, market=market)
@@ -191,9 +190,10 @@ class ClassicalModelManager(BaseCalcManager):
         data = self.load_quote(self._symbols, start_date, self._end_date, market=market)
         logger.debug(data.tail())
         self.calc(data)
+        self.save(list(self._data_store[self._end_date]))
 
-    def roll_single_market(self, market='US'):
-        self._start_date = self.get_real_trading_date(self._start_date, bar_count=1, market=market)
+    def calc_single_market_with_winning(self, winning_period, market='US'):
+        self._start_date = self.get_real_trading_date(self._end_date, bar_count=winning_period, market=market)
         self._end_date = self.get_real_trading_date(self._end_date, bar_count=1, market=market)
 
         data_start_date = self.get_real_trading_date(self._start_date, bar_count=self._bar_count, market=market)
@@ -211,6 +211,14 @@ class ClassicalModelManager(BaseCalcManager):
             self.calc(period_data)
 
         logger.info('calc winning probability')
-        winning_data = self._winning_probability(self._data_store, self._start_date, self._end_date)
-        self.save_winning(winning_data)
+
+        winning_data = self._winning_probability(self._data_store, quote_data=data, market=self._market)
+
+        data_store = self._data_store[self._end_date]
+
+        for d in data_store:
+            metrics = d['metrics']
+            d['winning'] = winning_data[metrics]
+
+        self.save(data_store)
 
