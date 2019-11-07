@@ -5,9 +5,10 @@
 @since: 2019-10-29 08:55
 """
 from datetime import datetime
+import time
 from functools import lru_cache
-from ginkgo.utils.tushare_client import ts_client
-import tushare as ts
+import pandas as pd
+from ginkgo.utils.tushare_client import ts_pro
 
 
 class QuoteUtil:
@@ -16,21 +17,38 @@ class QuoteUtil:
     @lru_cache(4)
     def load_symbols(market='CN'):
         if market == 'CN':
-            return ts.get_hs300s()['code'].to_list()
+            return ts_pro.stock_basic(list_status='L')
         else:
             raise NotImplementedError
 
     @staticmethod
-    def load_daily_quote(symbols, start_date, end_date, market='CN'):
+    def load_daily_hists_quote(symbols, start_date, end_date, market='CN'):
+        quote_list = []
         if market == 'CN':
-            return ts.get_hists(symbols, start_date, end_date)
+            for symbol in symbols:
+                print(symbol)
+                single = ts_pro.daily(ts_code=symbol, start_date=start_date, end_date=end_date)
+                quote_list.append(single[['ts_code', 'trade_date', 'open', 'high', 'low', 'close', 'vol']])
+                time.sleep(0.4)
         else:
             raise NotImplementedError
+
+        data = pd.concat(quote_list, ignore_index=True)
+
+        return data
 
     @staticmethod
-    def load_calendar(market='CN'):
+    def load_calendar(start_date=None, end_date=None, market='CN'):
 
         if market == 'CN':
-            return ts_client.trade_cal(is_open=1)['cal_date']
+            return ts_pro.trade_cal(start_date=start_date, end_date=end_date, is_open=1)['cal_date']
         else:
             raise NotImplementedError
+
+
+if __name__ == '__main__':
+    symbols = QuoteUtil.load_symbols()
+    symbols = symbols.iloc[:5, 0]
+
+    quote = QuoteUtil.load_daily_hists_quote(symbols, '20190101', '20190115')
+    print(quote)
