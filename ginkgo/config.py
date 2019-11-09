@@ -17,8 +17,11 @@ def project_config_dir():
     """
     项目根目录. 用于放置数据和配置
     """
-    root = os.environ.get('GINKGO_DIR', '~/.ginkgo')
+    root = os.environ.get('GINKGO_DIR', None)
+    if root is None:
+        root = os.path.expanduser('~/.ginkgo')
     return root
+
 
 
 def ensure_directory(path):

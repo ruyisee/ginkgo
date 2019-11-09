@@ -1,3 +1,15 @@
 tushare:
   token: '6d96e1d773c6de809d76e3056e05e01cf84c2de1b7705e084323f3e2'
 
+quote:
+  fields:
+    open:
+      precision: 1000
+    high:
+      precision: 1000
+    low:
+      precision: 1000
+    close:
+      precision: 1000
+    volume:
+      precision: 1

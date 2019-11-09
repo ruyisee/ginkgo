@@ -8,11 +8,14 @@
 import logging
 import click
 from ginkgo.utils.logger import logger
+from ginkgo import COMMANDS_LIST
 from ginkgo.analysis.calc_classical_model import ClassicalModelManager
 
 
 @click.group()
-def cli():
+@click.help_option('-h', '--help')
+@click.pass_context
+def cli(ctx):
     pass
 
 
@@ -26,7 +29,6 @@ def cli():
 @click.option('-fd', '--forecast_days', default=None, callback=lambda _, x: x.split(',') if x else None)
 @click.option('-d', '--debug', is_flag=True)
 @click.option('-w', '--winning', is_flag=True)
-@click.pass_context
 def calc_classic(ctx, bar_count, market, winning_period, forecast_days, end_date, symbols, debug, winning):
     if forecast_days:
         forecast_days = [int(x) for x in forecast_days]
@@ -37,5 +39,12 @@ def calc_classic(ctx, bar_count, market, winning_period, forecast_days, end_date
           winning_period=winning_period, winning=winning)
 
 
+def load_command():
+    for command in COMMANDS_LIST:
+        cli.add_command(command)
+
+
 if __name__ == '__main__':
+    from ginkgo.data_local.__main__ import *
+    load_command()
     cli()

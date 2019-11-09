@@ -7,6 +7,7 @@
 
 import abc
 import os
+from ginkgo.utils.logger import logger
 
 
 class Ingester(abc.ABCMeta):
@@ -52,10 +53,13 @@ class LocalDataBase:
         raise NotImplementedError
 
     @classmethod
-    def check_file(cls, file_abs_path):
-        dir_name = os.path.dirname(file_abs_path)
-        if not os.path.exists(dir_name):
-            os.makedirs(dir_name, exist_ok=True)
+    def check_file(cls, file_path, is_dir=False):
+        if is_dir:
+            dir_name = file_path
+        else:
+            dir_name = os.path.dirname(file_path)
+        logger.info(f'check file path {file_path}')
+        os.makedirs(dir_name, exist_ok=True)
 
 
 class Index(LocalDataBase):
@@ -64,13 +68,23 @@ class Index(LocalDataBase):
         self._base_path = base_path
         self._catgory = catgory.lower()
         self._index_path = None
-        self._market = market.lower()
+        self._market = market.upper()
         self._name_list = None
         self._name_i_map = None
         self._latest_date = None
 
-    def iloc_of(self, name):
+    def i_of(self, name):
+        """
+        name --> i_index
+        :param name:
+        :return:
+        """
         raise NotImplementedError
 
-    def loc_of(self, i):
+    def o_of(self, i):
+        """
+        i_index --> obj
+        :param i:
+        :return:
+        """
         raise NotImplementedError

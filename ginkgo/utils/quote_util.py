@@ -17,31 +17,32 @@ class QuoteUtil:
     @lru_cache(4)
     def load_symbols(market='CN'):
         if market == 'CN':
-            return ts_pro.stock_basic(list_status='L')
+            symbols = ts_pro.stock_basic(list_status='L')
+            symbols.rename({'ts_code': 'code', 'market': 'board'}, inplace=True, axis=1)
         else:
             raise NotImplementedError
+        return symbols
 
     @staticmethod
-    def load_daily_hists_quote(symbols, start_date, end_date, market='CN'):
+    def load_daily_hists_quote(codes, start_date, end_date, market='CN'):
         quote_list = []
         if market == 'CN':
-            for symbol in symbols:
-                print(symbol)
-                single = ts_pro.daily(ts_code=symbol, start_date=start_date, end_date=end_date)
+            for code in codes:
+                single = ts_pro.daily(ts_code=code, start_date=start_date, end_date=end_date)
                 quote_list.append(single[['ts_code', 'trade_date', 'open', 'high', 'low', 'close', 'vol']])
                 time.sleep(0.4)
         else:
             raise NotImplementedError
 
         data = pd.concat(quote_list, ignore_index=True)
+        data.rename({'ts_code': 'code', 'vol': 'volume'}, inplace=True, axis=1)
 
         return data
 
     @staticmethod
     def load_calendar(start_date=None, end_date=None, market='CN'):
-
         if market == 'CN':
-            return ts_pro.trade_cal(start_date=start_date, end_date=end_date, is_open=1)['cal_date']
+            return ts_pro.trade_cal(start_date=start_date, end_date=end_date, is_open=1)['cal_date'].to_list()
         else:
             raise NotImplementedError
 
