@@ -10,4 +10,4 @@ from ginkgo import conf
 
 tushare.set_token(conf['tushare']['token'])
 
-ts_client = tushare.pro_api()
+ts_pro = tushare.pro_api()
