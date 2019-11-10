@@ -4,7 +4,7 @@
 
 @since: 2019-10-29 09:27
 """
-
+from collections import defaultdict
 from datetime import datetime
 import pandas as pd
 
@@ -131,7 +131,7 @@ class ClassicalModelManager(BaseCalcManager):
 
     def calc(self, data):
         logger.info('cleaning invalid data')
-        data.set_index(['timestamp', 'symbol'], inplace=True)
+        # data.set_index(['timestamp', 'symbol'], inplace=True)
         _open_df = data['open'].unstack().dropna(axis=1, how='any')
         _high_df = data['high'].unstack().dropna(axis=1, how='any')
         _low_df = data['low'].unstack().dropna(axis=1, how='any')
@@ -167,12 +167,11 @@ class ClassicalModelManager(BaseCalcManager):
 
     def run(self, end_date=None, symbols=None, market='US', winning_period=60, forecast_days=(1, 3, 5), winning=False):
         logger.info(f'running with args end_date: {end_date}, symbols: {symbols}, market: {market}')
-        self._end_date = end_date if end_date else datetime.today().date()
+        self._end_date = end_date if end_date else int(datetime.today().date().strftime('%Y%m%d'))
         # self._start_date = start_date
 
         if market == 'ALL':
-            self.run(end_date, symbols, 'US')
-            self.run(end_date, symbols, 'HK')
+            self.run(end_date, symbols, 'CN')
         else:
             self._market = market
             self._symbols = symbols                 # if symbols else self.load_symbols(market)
@@ -184,28 +183,32 @@ class ClassicalModelManager(BaseCalcManager):
                 self.calc_single_market_with_winning(winning_period, market)
 
     def calc_single_market(self, market='US'):
-        self._end_date = self._calc_date = self.get_real_trading_date(self._end_date, bar_count=1, market=market)
-        start_date = self.get_real_trading_date(self._end_date, bar_count=self._bar_count, market=market)
+        if self._symbols is None:
+            self._symbols = self.get_symbols(market)
+        self._end_date = self._calc_date = self.get_date_offset(self._end_date, bar_count=1, market=market)
+        start_date = self.get_date_offset(self._end_date, bar_count=self._bar_count, market=market)
         logger.info('loading quote')
-        data = self.load_quote(self._symbols, start_date, self._end_date, market=market)
+        data = self.get_daily_hists(self._symbols, start_date, self._end_date, market=market)
         logger.debug(data.tail())
         self.calc(data)
         self.save(list(self._data_store[self._end_date]))
 
     def calc_single_market_with_winning(self, winning_period, market='US'):
-        self._start_date = self.get_real_trading_date(self._end_date, bar_count=winning_period, market=market)
-        self._end_date = self.get_real_trading_date(self._end_date, bar_count=1, market=market)
+        if self._symbols is None:
+            self._symbols = self.get_symbols(market)
+        self._start_date = self.get_date_offset(self._end_date, bar_count=winning_period, market=market)
+        self._end_date = self.get_date_offset(self._end_date, bar_count=1, market=market)
 
-        data_start_date = self.get_real_trading_date(self._start_date, bar_count=self._bar_count, market=market)
+        data_start_date = self.get_date_offset(self._start_date, bar_count=self._bar_count, market=market)
         logger.info('loading quote')
 
-        data = self.load_quote(self._symbols, data_start_date, self._end_date, market=market)
+        data = self.get_daily_hists(self._symbols, data_start_date, self._end_date, market=market)
 
-        calendar = self.load_calendar(market)
+        calendar = self.get_calendar(market)
         calendar = calendar[(calendar <= self._end_date) & (calendar >= self._start_date)]
 
         for dt in calendar:
-            period_start_date = self.get_real_trading_date(dt, self._bar_count, market)
+            period_start_date = self.get_date_offset(dt, self._bar_count, market)
             period_data = data[(data['timestamp'] <= dt) & (data['timestamp'] >= period_start_date)]
             self._calc_date = dt.to_pydatetime()
             self.calc(period_data)

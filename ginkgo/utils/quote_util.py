@@ -4,10 +4,11 @@
 
 @since: 2019-10-29 08:55
 """
-from datetime import datetime
 import time
 from functools import lru_cache
+from requests.exceptions import ConnectionError
 import pandas as pd
+from ginkgo.utils.logger import logger
 from ginkgo.utils.tushare_client import ts_pro
 
 
@@ -24,25 +25,38 @@ class QuoteUtil:
         return symbols
 
     @staticmethod
-    def load_daily_hists_quote(codes, start_date, end_date, market='CN'):
+    def load_daily_hists_quote(symbols, start_date, end_date, market='CN'):
+        retry = 5
         quote_list = []
         if market == 'CN':
-            for code in codes:
-                single = ts_pro.daily(ts_code=code, start_date=start_date, end_date=end_date)
-                quote_list.append(single[['ts_code', 'trade_date', 'open', 'high', 'low', 'close', 'vol']])
-                time.sleep(0.4)
+            for symbol in symbols:
+                retry_count = 0
+                while retry_count < retry:
+                    time.sleep(0.6)
+                    retry_count += 1
+                    try:
+                        single = ts_pro.daily(ts_code=symbol, start_date=start_date, end_date=end_date)
+                        quote_list.append(single[['ts_code', 'trade_date', 'open', 'high', 'low', 'close', 'vol']])
+                        break
+                    except ConnectionError as e:
+                        if retry_count == retry:
+                            raise
+                        else:
+                            time.sleep(3)
         else:
             raise NotImplementedError
 
         data = pd.concat(quote_list, ignore_index=True)
         data.rename({'ts_code': 'code', 'vol': 'volume'}, inplace=True, axis=1)
+        data['symbol'] = data['code'].str.split('.', expand=True)[0]
 
         return data
 
     @staticmethod
     def load_calendar(start_date=None, end_date=None, market='CN'):
         if market == 'CN':
-            return ts_pro.trade_cal(start_date=start_date, end_date=end_date, is_open=1)['cal_date'].to_list()
+            calendar = ts_pro.trade_cal(start_date=start_date, end_date=end_date, is_open=1)['cal_date'].to_list()
+            return [int(c) for c in calendar]
         else:
             raise NotImplementedError
 

@@ -109,6 +109,9 @@ class Classical:
         return is_u_d_u & is_yesterday_great_bf_open & is_great_growth
 
     def morning_start(self):
+        print(self._close_arr[-3])
+        print(self._open_arr[-3])
+        raise
         condition_1 = self._close_arr[-3] / self._open_arr[-3] < 0.95
         condition_2 = self._open_arr[-2] < self._close_arr[-3]
         is_yesterday_cross_star = abs(self._open_arr[-2] - self._close_arr[-2]) / self._close_arr[-2] < 0.03
@@ -160,7 +163,6 @@ class Classical:
         阴包阳
         :return:
         """
-
         is_yesterday_fall = (self._close_arr[-2] < self._close_arr[-3]) & (self._close_arr[-2] < self._open_arr[-2])
         is_today_rise = (self._close_arr[-1] > self._close_arr[-2]) & (self._close_arr[-1] > self._open_arr[-1])
         is_wrap = self._close_arr[-1] < self._open_arr[-2]

@@ -6,15 +6,17 @@
 """
 
 from functools import lru_cache
-from ginkgo.utils.quote_util import QuoteUtil
 from ginkgo.utils.logger import logger
+from ginkgo.analysis.local_client import get_local_client
 
 
 class BaseCalcManager:
 
     @staticmethod
-    def load_quote(symbols, start_date, end_date, fields=('open', 'low', 'high', 'close', 'volume', 'symbol'), market='US'):
-        return QuoteUtil.load_daily_quote(symbols, start_date, end_date, fields=fields, market=market)
+    def get_daily_hists(symbols, start_date, end_date, fields=('open', 'low', 'high', 'close', 'volume'), market='CN'):
+        client = get_local_client(market=market)
+        sframe = client.get_daily_hists(symbols, start_date, end_date, fields_list=fields)
+        return sframe.to_dataframe()
 
     def run(self, winning=False):
         raise NotImplementedError
@@ -24,22 +26,19 @@ class BaseCalcManager:
 
     @staticmethod
     @lru_cache(4, False)
-    def load_calendar(market='US'):
-        return QuoteUtil.load_calendar(None, None, market=market)
+    def get_calendar(market='CN'):
+        client = get_local_client(market=market)
+        return client.get_calendar(None, None)
 
-    def get_real_trading_date(self, dt, bar_count, market='US'):
-        calendar_series = self.load_calendar(market)
-        try:
-            if bar_count > 0:
-                return calendar_series[calendar_series <= dt].iloc[-1 * bar_count].to_pydatetime()
-            else:
-                return calendar_series[calendar_series >= dt].iloc[-1 * bar_count].to_pydatetime()
-        except IndexError:
-            raise IndexError(f'bar count before {dt} is  less than {bar_count}')
+    def get_date_offset(self, dt, bar_count, market='US'):
+        client = get_local_client(market=market)
+        return client.get_date_offset(dt, bar_count)
 
     @staticmethod
-    def load_symbols(market='US'):
-        return QuoteUtil.load_symbols(market)
+    def get_symbols(market='CN', industry=None, area=None, board=None):
+        client = get_local_client(market=market)
+        constracts = client.get_symbols(industry, area, board)
+        return [const.symbol for const in constracts]
 
     @staticmethod
     def save(data):
@@ -80,9 +79,9 @@ class BaseCalcManager:
         end_date = max(forecast_data.keys())
 
         if quote_data is None:
-            effect_end_date = self.get_real_trading_date(end_date, bar_count=-max(forecast_days), market=market)
-            quote_data = self.load_quote(None, start_date=start_date,
-                                   end_date=effect_end_date, fields=('close', ), market=market)
+            effect_end_date = self.get_date_offset(end_date, bar_count=-max(forecast_days), market=market)
+            quote_data = self.get_daily_hists(None, start_date=start_date,
+                                              end_date=effect_end_date, fields=('close', ), market=market)
 
         quote_data.set_index(['timestamp', 'symbol'], inplace=True)
         quote_data.sort_index(inplace=True)
