@@ -26,7 +26,6 @@ class DataProxy:
 
     def get_daily_hists(self, symbols, start_date, end_date, fields_list, br=False):
         sframe = self._daily_quote.get_symbols_data(symbols, start_date, end_date, fields_list)
-
         return sframe
 
     def get_split(self, symbols, start_date, end_date):
