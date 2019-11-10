@@ -55,24 +55,49 @@ class QuoteModel(LocalDataBase):
         for i in range(0, len(codes), fetch_chunk_num):
             logger.info(f'ingest quote: {i // fetch_chunk_num + 1}/{all_chunk_num}')
             period_codes = codes[i: i+fetch_chunk_num]
-            yield StandardQuoteIngester.ingest_daily_hists_quote(period_codes, start_date, end_date)
+            yield StandardQuoteIngester.ingest_daily_hists_v(period_codes, start_date, end_date)
+
+    def ingest_h(self, codes, trade_dates):
+        logger.info(f'quote ingest start')
+        return StandardQuoteIngester.ingest_daily_hists_h(codes, trade_dates, self._market)
 
     def init(self, symbols, start_date, end_date):
         self.load(mode='w+')
         for quote in self.ingest(None, start_date, end_date):
             self.save(quote)
 
-    def update(self, end_date):
-        pass
+    def update(self, end_date, start_date=None, codes=None, f=False):
+        self._symbol_index.update()
+        logger.info('updating quote')
+        old_latest_date = self._date_index.update(end_date)
+        if (old_latest_date is None) and (start_date is None):
+            logger.info('quote no need to update')
+            return
+        elif start_date is not None:
+            if old_latest_date is not None:
+                if not f:
+                    start_date = min(start_date, old_latest_date + 1)
+                    logger.info(f'quote updating append {start_date} - {end_date}')
+                else:
+                    start_date = old_latest_date + 1
+                    logger.info(f'quote updating in situ {start_date} - {end_date}')
+            trade_dates = self._date_index.get_calendar(start_date, end_date)
+            data = self.ingest_h(codes=codes, trade_dates=trade_dates)
+        else:
+            logger.info(f'quote updating append {old_latest_date + 1} - {end_date}')
+            trade_dates = self._date_index.get_calendar(old_latest_date+1, end_date)
+            data = self.ingest_h(codes=codes, trade_dates=trade_dates)
+        self.load('w+')
+        self.save(data)
 
     def save(self, data):
         data['sid'] = sids = data.symbol.apply(self._symbol_index.i_of)
         data['did'] = data.trade_date.apply(self._date_index.i_of)
-        data['chunk_id'] = sids // self._chunks_s_num               # 保存到第几块数据
-        data['chunk_sid'] = sids % self._chunks_s_num           # 数据symbol在块内的索引
         data.dropna(how='any', inplace=True)
         logger.debug('[daily_bar_util] saving ohlcv:\n %s' % (data,))
         data.drop(columns=['symbol', 'trade_date'], inplace=True)
+        data['did'] = data['did'].astype('int')
+        data['sid'] = data['sid'].astype('int')
         data.set_index(['did', 'sid'], inplace=True)
 
         for field in self._fields_dict.values():

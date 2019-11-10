@@ -25,8 +25,12 @@ class StandardQuoteIngester(Ingester):
         return QuoteUtil.load_symbols(market)
 
     @staticmethod
-    def ingest_daily_hists_quote(symbols, start_date, end_date, market='CN'):
-        return QuoteUtil.load_daily_hists_quote(symbols, start_date, end_date, market)
+    def ingest_daily_hists_v(symbols, start_date, end_date, market='CN'):
+        return QuoteUtil.load_daily_hists_v(symbols, start_date, end_date, market)
+
+    @staticmethod
+    def ingest_daily_hists_h(symbols, trade_dates, market):
+        return QuoteUtil.load_daily_hists_h(symbols, trade_dates, market=market)
 
     @staticmethod
     def ingest_split(start_date, end_date, market='CN'):

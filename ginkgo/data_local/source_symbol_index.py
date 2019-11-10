@@ -35,12 +35,28 @@ class ColSymbolIndex(Index):
         self.save(col_df)
         self.load()
 
+    def update(self):
+        self.load()
+        logger.info('updating contract')
+        new = self.ingest()
+        old = self._contract_df['symbol']
+        to_update_df = new.set_index('symbol').drop(old).reset_index()
+        if not to_update_df.empty:
+            logger.info(f'update contracts {to_update_df["symbol"].to_list()}')
+            self._contract_df = self._contract_df.append(to_update_df)
+            self.save(self._contract_df)
+            self.load()
+        else:
+            logger.info('no new contracts to update')
+
     def save(self, data: pd.DataFrame):
         logger.info('saving symbol info')
         data.to_csv(self._index_path, index=False, mode='w+')
 
     def load(self):
         logger.info('loading symbol info')
+        self._stock_contract_list = []
+        self._symbol_contract_dict = {}
         self._contract_df = pd.read_csv(self._index_path, dtype='str')
         for i, row in self._contract_df.iterrows():
             sc = StockContract(code=row.code, symbol=row.symbol, sid=i, name=row.name, market=self._market,
@@ -50,10 +66,16 @@ class ColSymbolIndex(Index):
             self._symbol_contract_dict[row.symbol] = sc
 
     def contract_from_symbol(self, symbol):
-        return self._symbol_contract_dict[symbol]
+        try:
+            return self._symbol_contract_dict[symbol]
+        except KeyError as e:
+            return None
 
     def i_of(self, symbol):
-        return self.contract_from_symbol(symbol).sid
+        try:
+            return self.contract_from_symbol(symbol).sid
+        except AttributeError as e:
+            return None
 
     def o_of(self, i):
         return self._stock_contract_list[i]

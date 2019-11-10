@@ -31,7 +31,24 @@ class RowDateIndex(Index):
         self.load()
 
     def update(self, end_date):
-        pass
+        self.load()
+        logger.info('updating date index')
+        old_latest_date = self._latest_date
+        if self._latest_date < end_date:
+            logger.info(f'updating date {self._latest_date} - {end_date}')
+            calendar_list = self.ingest(self._latest_date, end_date)
+            len_count = len(self._name_list)
+            for date_str in calendar_list:
+                if date_str not in self._name_i_map:
+                    self._name_list.append(date_str)
+                    self._name_i_map[date_str] = len_count
+                    len_count += 1
+            self.save(self._name_list)
+            self.load()
+            return old_latest_date
+        else:
+            logger.info('date no need to update')
+            return None
 
     def load(self):
         logger.info('loading symbol info')
