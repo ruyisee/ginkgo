@@ -9,6 +9,7 @@
 """
 
 import numpy as np
+from ginkgo.core.utils import continuous_change
 
 
 class Classical:
@@ -109,15 +110,11 @@ class Classical:
         return is_u_d_u & is_yesterday_great_bf_open & is_great_growth
 
     def morning_start(self):
-        print(self._close_arr[-3])
-        print(self._open_arr[-3])
-        raise
         condition_1 = self._close_arr[-3] / self._open_arr[-3] < 0.95
         condition_2 = self._open_arr[-2] < self._close_arr[-3]
         is_yesterday_cross_star = abs(self._open_arr[-2] - self._close_arr[-2]) / self._close_arr[-2] < 0.03
         is_today_growth = self._close_arr[-1] / self._open_arr[-1] > 1.05
         condition_3 = self._close_arr[-1] > self._close_arr[-3]
-
         return condition_1 & condition_2 & is_yesterday_cross_star & is_today_growth & condition_3
 
     def duck_head(self, min_period=8, mid_period=18, max_period=55):
@@ -147,7 +144,7 @@ class Classical:
                is_mid_13_growth & condition_4 & f13.all(axis=0) & condition_6.all(axis=0) & \
                condition_7.all(axis=0) & condition_8 & condition_9
 
-    def rise_wrap_fall(self):
+    def rise_wrap_fall(self, count=(5, 4)):
         """
         阳包阴
         :return:
@@ -155,27 +152,29 @@ class Classical:
         is_yesterday_fall = (self._close_arr[-2] < self._close_arr[-3]) & (self._close_arr[-2] < self._open_arr[-2])
         is_today_rise = (self._close_arr[-1] > self._close_arr[-2]) & (self._close_arr[-1] > self._open_arr[-1])
         is_wrap = self._close_arr[-1] > self._open_arr[-2]
+        is_pre_down = continuous_change(self._close_arr[-count[0]-2:-1], count[1], direction=-1)
+        return is_yesterday_fall & is_today_rise & is_wrap & is_pre_down
 
-        return is_yesterday_fall & is_today_rise & is_wrap
-
-    def fall_wrap_raise(self):
+    def fall_wrap_raise(self, count=(5, 4)):
         """
         阴包阳
         :return:
         """
-        is_yesterday_fall = (self._close_arr[-2] < self._close_arr[-3]) & (self._close_arr[-2] < self._open_arr[-2])
-        is_today_rise = (self._close_arr[-1] > self._close_arr[-2]) & (self._close_arr[-1] > self._open_arr[-1])
+        is_yesterday_fall = (self._close_arr[-2] > self._close_arr[-3]) & (self._close_arr[-2] > self._open_arr[-2])
+        is_today_rise = (self._close_arr[-1] < self._close_arr[-2]) & (self._close_arr[-1] < self._open_arr[-1])
         is_wrap = self._close_arr[-1] < self._open_arr[-2]
+        is_pre_raise = continuous_change(self._close_arr[-count[0]-2:-1], count[1], direction=1)
 
-        return is_yesterday_fall & is_today_rise & is_wrap
+        return is_yesterday_fall & is_today_rise & is_wrap & is_pre_raise
 
-    def rise_pregnant_line(self):
+    def rise_pregnant_line(self, count=(7, 5)):
 
         is_yesterday_fall = (self._close_arr[-2] < self._close_arr[-3]) & (self._close_arr[-2] < self._open_arr[-2])
         is_today_rise = (self._close_arr[-1] > self._close_arr[-2]) & (self._close_arr[-1] > self._open_arr[-1])
         is_wrap = (self._close_arr[-1] < self._open_arr[-2]) & (self._open_arr[-1] > self._close_arr[-2])
+        is_pre_down = continuous_change(self._close_arr[-count[0]-2:-1], count[1], direction=-1)
 
-        return is_yesterday_fall & is_today_rise & is_wrap
+        return is_yesterday_fall & is_today_rise & is_wrap & is_pre_down
 
     def golden_spider(self, min_period=5, mid_period=10, max_period=20):
         E1 = self.moving_average(self._close_arr, min_period)

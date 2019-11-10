@@ -38,6 +38,7 @@ class BaseCalcManager:
     def get_symbols(market='CN', industry=None, area=None, board=None):
         client = get_local_client(market=market)
         constracts = client.get_symbols(industry, area, board)
+        # return ['000710']
         return [const.symbol for const in constracts]
 
     @staticmethod

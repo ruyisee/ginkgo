@@ -85,7 +85,7 @@ class ClassicalModelManager(BaseCalcManager):
             logger.error(e)
 
     def _c_rise_wrap_fall(self):
-        type_name = 'rise_wrap'
+        type_name = 'rise_wrap_fall'
         try:
             mask = self._calculator_instance.rise_wrap_fall()
             symbols = self._data_symbols[mask].to_list()
