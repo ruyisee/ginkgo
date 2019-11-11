@@ -16,26 +16,26 @@ class QuoteUtil:
 
     @staticmethod
     @lru_cache(4)
-    def load_symbols(market='CN'):
+    def load_basic(market='CN'):
         if market == 'CN':
-            symbols = ts_pro.stock_basic(list_status='L')
-            symbols.rename({'ts_code': 'code', 'market': 'board'}, inplace=True, axis=1)
+            contracts = ts_pro.stock_basic(list_status='L')
+            contracts.rename({'symbol': 'code', 'ts_code': 'symbol', 'market': 'board'}, inplace=True, axis=1)
         else:
             raise NotImplementedError
-        return symbols
+        return contracts
 
     @staticmethod
-    def load_daily_hists_quote(symbols, start_date, end_date, market='CN'):
+    def load_daily_hists_v(codes, start_date, end_date, market='CN'):
         retry = 5
         quote_list = []
         if market == 'CN':
-            for symbol in symbols:
+            for code in codes:
                 retry_count = 0
                 while retry_count < retry:
                     time.sleep(0.6)
                     retry_count += 1
                     try:
-                        single = ts_pro.daily(ts_code=symbol, start_date=start_date, end_date=end_date)
+                        single = ts_pro.daily(ts_code=code, start_date=start_date, end_date=end_date)
                         quote_list.append(single[['ts_code', 'trade_date', 'open', 'high', 'low', 'close', 'vol']])
                         break
                     except ConnectionError as e:
@@ -47,12 +47,11 @@ class QuoteUtil:
             raise NotImplementedError
 
         data = pd.concat(quote_list, ignore_index=True)
-        data.rename({'ts_code': 'code', 'vol': 'volume'}, inplace=True, axis=1)
-        data['symbol'] = data['code'].str.split('.', expand=True)[0]
+        data.rename({'ts_code': 'symbol', 'vol': 'volume'}, inplace=True, axis=1)
         return data
 
     @staticmethod
-    def load_daily_hists_h(symbols, trade_dates, market):
+    def load_daily_hists_h(codes, trade_dates, market):
         retry = 5
         quote_list = []
         if market == 'CN':
@@ -62,7 +61,7 @@ class QuoteUtil:
                     time.sleep(0.6)
                     retry_count += 1
                     try:
-                        single = ts_pro.daily(ts_code=symbols, trade_date=trade_date)
+                        single = ts_pro.daily(ts_code=codes, trade_date=trade_date)
                         quote_list.append(single[['ts_code', 'trade_date', 'open', 'high', 'low', 'close', 'vol']])
                         break
                     except ConnectionError as e:
@@ -74,11 +73,8 @@ class QuoteUtil:
             raise NotImplementedError
 
         data = pd.concat(quote_list, ignore_index=True)
-        data.rename({'ts_code': 'code', 'vol': 'volume'}, inplace=True, axis=1)
-        data['symbol'] = data['code'].str.split('.', expand=True)[0]
+        data.rename({'ts_code': 'symbol', 'vol': 'volume'}, inplace=True, axis=1)
         return data
-
-
 
     @staticmethod
     def load_calendar(start_date=None, end_date=None, market='CN'):
@@ -90,7 +86,7 @@ class QuoteUtil:
 
 
 if __name__ == '__main__':
-    symbols = QuoteUtil.load_symbols()
+    symbols = QuoteUtil.load_basic()
     symbols = symbols.iloc[:5, 0]
 
     quote = QuoteUtil.load_daily_hists_v(symbols, '20190101', '20190115')

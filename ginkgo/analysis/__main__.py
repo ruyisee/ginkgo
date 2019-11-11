@@ -20,18 +20,18 @@ from ginkgo.utils.logger import logger
 @click.option('-b', '--bar_count', default=None, help='向前取多少天的数据')
 @click.option('-wp', '--winning_period', default=60, help='向前取多少天的数据')
 @click.option('-ed', '--end_date', default=None, callback=lambda _, x: int(x))
-@click.option('-s', '--symbols', default=None, callback=lambda _, x: x.split(',') if x else None)
+@click.option('-s', '--codes', default=None, callback=lambda _, x: x.split(',') if x else None)
 @click.option('-fd', '--forecast_days', default=None, callback=lambda _, x: x.split(',') if x else None)
 @click.option('-d', '--debug', is_flag=True)
 @click.option('-w', '--winning', is_flag=True)
 @click.pass_context
-def calc_classical(ctx, bar_count, market, winning_period, forecast_days, end_date, symbols, debug, winning):
+def calc_classical(ctx, bar_count, market, winning_period, forecast_days, end_date, codes, debug, winning):
     if forecast_days:
         forecast_days = [int(x) for x in forecast_days]
     if debug:
         logger.setLevel(logging.DEBUG)
     m = ClassicalModelManager(bar_count=bar_count)
-    m.run(end_date=end_date, symbols=symbols, market=market, forecast_days=forecast_days,
+    m.run(end_date=end_date, codes=codes, market=market, forecast_days=forecast_days,
           winning_period=winning_period, winning=winning)
 
 

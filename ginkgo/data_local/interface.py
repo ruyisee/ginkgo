@@ -58,7 +58,6 @@ class LocalDataBase:
             dir_name = file_path
         else:
             dir_name = os.path.dirname(file_path)
-        logger.info(f'check file path {file_path}')
         os.makedirs(dir_name, exist_ok=True)
 
 

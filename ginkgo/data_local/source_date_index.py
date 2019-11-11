@@ -51,7 +51,7 @@ class RowDateIndex(Index):
             return None
 
     def load(self):
-        logger.info('loading symbol info')
+        logger.info('loading date info')
         with open(self._index_path, mode='rb+') as f:
             self._name_list = pickle.load(f)
         self._name_i_map = {}

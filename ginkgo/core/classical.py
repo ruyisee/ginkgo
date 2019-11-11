@@ -7,7 +7,7 @@
 
 计算经典形态
 """
-
+import talib
 import numpy as np
 from ginkgo.core.utils import continuous_change
 
@@ -201,9 +201,11 @@ class Classical:
     @staticmethod
     def moving_average(a, n=3):
         if a.ndim == 2:
-            axis = 1
+            shape = a.shape
+            out = np.zeros(shape)
+            for i in range(shape[1]):
+                out[:, i] = talib.MA(a[:, i], n)
+
         else:
-            axis = 0
-        ret = np.cumsum(a, dtype=float, axis=axis)
-        ret[n:] = ret[n:] - ret[:-n]
-        return ret[n - 1:] / n
+            out = talib.MA(a, n)
+        return out

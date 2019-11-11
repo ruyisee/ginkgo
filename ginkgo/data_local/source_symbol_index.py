@@ -27,7 +27,7 @@ class ColSymbolIndex(Index):
 
     def ingest(self):
         logger.info('ingest symbol info')
-        return StandardQuoteIngester.ingest_symbols(self._market)
+        return StandardQuoteIngester.ingest_basic(self._market)
 
     def init(self):
         logger.info('init symbol info')
@@ -94,7 +94,7 @@ class ColSymbolIndex(Index):
     def codes(self):
         return self._contract_df['code'].to_list()
 
-    def contracts_filter(self, industry=None, area=None, board=None):
+    def contracts_filter(self, industry=None, area=None, board=None, symbol=True):
         if (industry is None) & (area is None) & (board is None):
             return self._stock_contract_list[:]
 
@@ -111,6 +111,8 @@ class ColSymbolIndex(Index):
         mask = industry_mask & area_mask & board_mask
 
         selected = self._contract_df.iloc[mask]['symbol']
+        if symbol:
+            return selected.to_list()
         contracts = []
         for c in selected:
             obj = self.contract_from_symbol(c)
