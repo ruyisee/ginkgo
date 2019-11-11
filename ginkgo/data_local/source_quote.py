@@ -136,7 +136,7 @@ class QuoteModel(LocalDataBase):
     def get_symbol_data(self, symbol, start_date, end_date, fields_list=None):
         if fields_list is None:
             fields_list = list(self._fields_dict.keys())
-        sid = self._symbol_index.i_of(symbol)
+        sid = self._symbol_index.i_of(symbol, error='raise')
         calendar = self._date_index.get_calendar(start_date, end_date)
         start_id = self._date_index.i_of(start_date)
         end_id = self._date_index.i_of(end_date)

@@ -65,17 +65,21 @@ class ColSymbolIndex(Index):
             self._stock_contract_list.append(sc)
             self._symbol_contract_dict[row.symbol] = sc
 
-    def contract_from_symbol(self, symbol):
+    def contract_from_symbol(self, symbol, error='ignore'):
         try:
             return self._symbol_contract_dict[symbol]
         except KeyError as e:
-            return None
+            if error == 'ignore':
+                return None
+            raise ValueError(f'symbol `{symbol}` not exist')
 
-    def i_of(self, symbol):
+    def i_of(self, symbol, error='ignore'):
         try:
-            return self.contract_from_symbol(symbol).sid
+            return self.contract_from_symbol(symbol, error).sid
         except AttributeError as e:
-            return None
+            if error == 'ignore':
+                return None
+            raise
 
     def o_of(self, i):
         return self._stock_contract_list[i]
