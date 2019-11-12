@@ -54,6 +54,7 @@ class QuoteUtil:
     def load_daily_hists_h(codes, trade_dates, market):
         retry = 5
         quote_list = []
+        ts_codes = ','.join(codes)
         if market == 'CN':
             for trade_date in trade_dates:
                 retry_count = 0
@@ -61,7 +62,7 @@ class QuoteUtil:
                     time.sleep(0.6)
                     retry_count += 1
                     try:
-                        single = ts_pro.daily(ts_code=codes, trade_date=trade_date)
+                        single = ts_pro.daily(ts_code=ts_codes, trade_date=trade_date)
                         quote_list.append(single[['ts_code', 'trade_date', 'open', 'high', 'low', 'close', 'vol']])
                         break
                     except ConnectionError as e:

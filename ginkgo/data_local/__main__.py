@@ -47,7 +47,7 @@ def quote_update(ctx, market, end_date, start_date, symbols, force, debug):
     if isinstance(start_date, str):
         start_date = int(start_date)
     qm = QuoteModel(PROJECT_CONFIG_DIR, market=market)
-    qm.update(codes=symbols, start_date=start_date, end_date=end_date, f=force)
+    qm.update(symbols=symbols, start_date=start_date, end_date=end_date, f=force)
 
 
 COMMANDS_LIST.append(quote_init)

@@ -65,8 +65,9 @@ class QuoteModel(LocalDataBase):
         self._date_index.init(start_date, end_date)
         self._symbol_index.init()
         self.load(mode='w+')
-        for quote in self.ingest(None, start_date, end_date):
-            self.save(quote)
+        for quote in self.ingest(symbols, start_date, end_date):
+            if not quote.empty:
+                self.save(quote)
 
     def update(self, end_date, start_date=None, symbols=None, f=False):
         self._symbol_index.update()
@@ -89,8 +90,9 @@ class QuoteModel(LocalDataBase):
             logger.info(f'quote updating append {old_latest_date + 1} - {end_date}')
             trade_dates = self._date_index.get_calendar(old_latest_date+1, end_date)
             data = self.ingest_h(symbols=symbols, trade_dates=trade_dates)
-        self.load('w+')
-        self.save(data)
+        self.load('r+')
+        if not data.empty:
+            self.save(data)
 
     def save(self, data):
         data['sid'] = sids = data.symbol.apply(self._symbol_index.i_of)
