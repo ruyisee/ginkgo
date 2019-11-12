@@ -99,6 +99,7 @@ class QuoteModel(LocalDataBase):
         data['sid'] = sids = data.symbol.apply(self._symbol_index.i_of)
         data['did'] = data.trade_date.apply(self._date_index.i_of)
         logger.debug('[daily_bar_util] saving ohlcv:\n %s' % (data,))
+        data.dropna(how='any', inplace=True)
         data['did'] = data['did'].astype('int')
         data['sid'] = data['sid'].astype('int')
         did_calendar = list(range(min(data['did']), max(data['did'])+1))
@@ -141,8 +142,8 @@ class QuoteModel(LocalDataBase):
             fields_list = list(self._fields_dict.keys())
         sid = self._symbol_index.i_of(symbol, error='raise')
         calendar = self._date_index.get_calendar(start_date, end_date)
-        start_id = self._date_index.i_of(start_date)
-        end_id = self._date_index.i_of(end_date)
+        start_id = self._date_index.i_of(start_date, vaild=True)
+        end_id = self._date_index.i_of(end_date, vaild=True)
         chunk_sid = sid % self._chunks_s_num
 
         fields_arr_list = []

@@ -54,7 +54,10 @@ class QuoteUtil:
     def load_daily_hists_h(codes, trade_dates, market):
         retry = 5
         quote_list = []
-        ts_codes = ','.join(codes)
+        if isinstance(codes, list):
+            ts_codes = ','.join(codes)
+        else:
+            ts_codes = codes
         if market == 'CN':
             for trade_date in trade_dates:
                 retry_count = 0
