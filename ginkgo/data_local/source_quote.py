@@ -37,36 +37,40 @@ class QuoteModel(LocalDataBase):
         self.get_calendar = self._date_index.get_calendar
         self.contracts_filter = self._symbol_index.contracts_filter
         self.get_date_offset = self._date_index.offset
+        self.get_valid_date = self._date_index.get_valid_date
 
     def _check_dir(self, dirs):
         for d in dirs:
             self.check_file(d, is_dir=True)
 
-    def ingest(self, codes, start_date, end_date):
+    def ingest(self, symbols, start_date, end_date):
         logger.info(f'quote ingest start')
 
-        if codes is None:
-            codes = self._symbol_index.codes
+        if symbols is None:
+            symbols = self._symbol_index.symbols
 
         fetch_chunk_num = 50
-        symbols_len = len(codes)
+        symbols_len = len(symbols)
         all_chunk_num = symbols_len // fetch_chunk_num + 1
 
-        for i in range(0, len(codes), fetch_chunk_num):
+        for i in range(0, len(symbols), fetch_chunk_num):
             logger.info(f'ingest quote: {i // fetch_chunk_num + 1}/{all_chunk_num}')
-            period_codes = codes[i: i+fetch_chunk_num]
-            yield StandardQuoteIngester.ingest_daily_hists_v(period_codes, start_date, end_date)
+            period_symbols = symbols[i: i+fetch_chunk_num]
+            yield StandardQuoteIngester.ingest_daily_hists_v(period_symbols, start_date, end_date)
 
-    def ingest_h(self, codes, trade_dates):
+    def ingest_h(self, symbols, trade_dates):
         logger.info(f'quote ingest start')
-        return StandardQuoteIngester.ingest_daily_hists_h(codes, trade_dates, self._market)
+        return StandardQuoteIngester.ingest_daily_hists_h(symbols, trade_dates, self._market)
 
     def init(self, symbols, start_date, end_date):
+        self._date_index.init(start_date, end_date)
+        self._symbol_index.init()
         self.load(mode='w+')
-        for quote in self.ingest(None, start_date, end_date):
-            self.save(quote)
+        for quote in self.ingest(symbols, start_date, end_date):
+            if not quote.empty:
+                self.save(quote)
 
-    def update(self, end_date, start_date=None, codes=None, f=False):
+    def update(self, end_date, start_date=None, symbols=None, f=False):
         self._symbol_index.update()
         logger.info('updating quote')
         old_latest_date = self._date_index.update(end_date)
@@ -82,32 +86,32 @@ class QuoteModel(LocalDataBase):
                     start_date = old_latest_date + 1
                     logger.info(f'quote updating in situ {start_date} - {end_date}')
             trade_dates = self._date_index.get_calendar(start_date, end_date)
-            data = self.ingest_h(codes=codes, trade_dates=trade_dates)
+            data = self.ingest_h(symbols=symbols, trade_dates=trade_dates)
         else:
             logger.info(f'quote updating append {old_latest_date + 1} - {end_date}')
             trade_dates = self._date_index.get_calendar(old_latest_date+1, end_date)
-            data = self.ingest_h(codes=codes, trade_dates=trade_dates)
-        self.load('w+')
-        self.save(data)
+            data = self.ingest_h(symbols=symbols, trade_dates=trade_dates)
+        self.load('r+')
+        if not data.empty:
+            self.save(data)
 
     def save(self, data):
         data['sid'] = sids = data.symbol.apply(self._symbol_index.i_of)
         data['did'] = data.trade_date.apply(self._date_index.i_of)
-        data.dropna(how='any', inplace=True)
         logger.debug('[daily_bar_util] saving ohlcv:\n %s' % (data,))
-        data.drop(columns=['symbol', 'trade_date'], inplace=True)
         data['did'] = data['did'].astype('int')
         data['sid'] = data['sid'].astype('int')
+        did_calendar = list(range(min(data['did']), max(data['did'])+1))
         data.set_index(['did', 'sid'], inplace=True)
-
+        start_id = did_calendar[0]
+        end_id = did_calendar[-1]
         for field in self._fields_dict.values():
             single_field_data = data[field.name].unstack()
             single_field_data = single_field_data.sort_index().fillna(0)
-            start_sid = single_field_data.index[0]
-            end_sid = single_field_data.index[-1]
+            single_field_data = single_field_data.reindex(did_calendar, method='pad')
             for sid in single_field_data.columns:
                 mmp_obj = self._get_memmap_obj(feild_obj=field, sid=sid)
-                mmp_obj[start_sid:end_sid+1, sid % self._chunks_s_num] = \
+                mmp_obj[start_id:end_id+1, sid % self._chunks_s_num] = \
                     (single_field_data[sid] * field.precision).to_numpy(dtype='int32')
 
     def _get_memmap_obj(self, feild_obj, sid):
@@ -132,8 +136,10 @@ class QuoteModel(LocalDataBase):
     def fields_to_obj(self, fields_list):
         return [self._fields_dict[field_name] for field_name in fields_list]
 
-    def get_symbol_data(self, symbol, start_date, end_date, fields_list):
-        sid = self._symbol_index.i_of(symbol)
+    def get_symbol_data(self, symbol, start_date, end_date, fields_list=None):
+        if fields_list is None:
+            fields_list = list(self._fields_dict.keys())
+        sid = self._symbol_index.i_of(symbol, error='raise')
         calendar = self._date_index.get_calendar(start_date, end_date)
         start_id = self._date_index.i_of(start_date)
         end_id = self._date_index.i_of(end_date)
@@ -149,13 +155,14 @@ class QuoteModel(LocalDataBase):
         frame = Frame(fields_arr, calendar, fields_list, symbol)
         return frame
 
-    def get_symbols_data(self, symbols, start_date, end_date, field_list):
+    def get_symbols_data(self, symbols, start_date, end_date, fields_list=None):
         if isinstance(symbols, str):
             symbols = [symbols, ]
-
+        if fields_list is None:
+            fields_list = list(self._fields_dict.keys())
         sf = SFrame()
         for symbol in symbols:
-            frame = self.get_symbol_data(symbol, start_date, end_date, field_list)
+            frame = self.get_symbol_data(symbol, start_date, end_date, fields_list)
             sf.add(frame)
 
         return sf

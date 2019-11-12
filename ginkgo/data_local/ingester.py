@@ -21,8 +21,8 @@ class StandardQuoteIngester(Ingester):
         return QuoteUtil.load_calendar(start_date, end_date, market)
 
     @staticmethod
-    def ingest_symbols(market='CN'):
-        return QuoteUtil.load_symbols(market)
+    def ingest_basic(market='CN'):
+        return QuoteUtil.load_basic(market)
 
     @staticmethod
     def ingest_daily_hists_v(symbols, start_date, end_date, market='CN'):

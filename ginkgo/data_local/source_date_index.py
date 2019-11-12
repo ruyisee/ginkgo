@@ -51,7 +51,7 @@ class RowDateIndex(Index):
             return None
 
     def load(self):
-        logger.info('loading symbol info')
+        logger.info('loading date info')
         with open(self._index_path, mode='rb+') as f:
             self._name_list = pickle.load(f)
         self._name_i_map = {}
@@ -68,13 +68,10 @@ class RowDateIndex(Index):
         name = int(name)
         if (name < self._name_list[0]) or (name > self._name_list[-1]):
             raise ValueError(f'date {name} out of {self._name_list[0]} - {self._name_list[-1]}')
-        while True:
-            try:
-                i = self._name_i_map[name]
-                break
-            except KeyError:
-                name -= 1
-
+        try:
+            i = self._name_i_map[name]
+        except KeyError:
+            i = None
         return i
 
     def o_of(self, i):
@@ -98,3 +95,14 @@ class RowDateIndex(Index):
         elif offset_id > len(self.dates) - 1:
             offset_id = -1
         return self.o_of(offset_id)
+
+    def get_valid_date(self, name):
+        if name <= self._name_list[0]:
+            return self._name_list[0]
+        elif name >= self._name_list[-1]:
+            return self._name_list[-1]
+        else:
+            i = self.i_of(name)
+            if i is None:
+                return self.get_valid_date(name-1)
+            return self._name_list[i]

@@ -5,7 +5,7 @@
 @since: 2019-10-29 09:27
 """
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 
 from ginkgo.core.classical import Classical
@@ -125,7 +125,7 @@ class ClassicalModelManager(BaseCalcManager):
         try:
             mask = self._calculator_instance.dead_spider()
             symbols = self._data_symbols[mask].to_list()
-            self._store_update(type_name, symbols, direction=1)
+            self._store_update(type_name, symbols, direction=-1)
         except Exception as e:
             logger.error(e)
 
@@ -167,7 +167,7 @@ class ClassicalModelManager(BaseCalcManager):
 
     def run(self, end_date=None, symbols=None, market='US', winning_period=60, forecast_days=(1, 3, 5), winning=False):
         logger.info(f'running with args end_date: {end_date}, symbols: {symbols}, market: {market}')
-        self._end_date = end_date if end_date else int(datetime.today().date().strftime('%Y%m%d'))
+        self._end_date = end_date if end_date else int((datetime.today().date() - timedelta(days=1)).strftime('%Y%m%d'))
         # self._start_date = start_date
 
         if market == 'ALL':
@@ -185,7 +185,7 @@ class ClassicalModelManager(BaseCalcManager):
     def calc_single_market(self, market='US'):
         if self._symbols is None:
             self._symbols = self.get_symbols(market)
-        self._end_date = self._calc_date = self.get_date_offset(self._end_date, bar_count=1, market=market)
+        self._end_date = self._calc_date = self.get_valid_date(self._end_date)
         start_date = self.get_date_offset(self._end_date, bar_count=self._bar_count, market=market)
         logger.info('loading quote')
         data = self.get_daily_hists(self._symbols, start_date, self._end_date, market=market)
@@ -203,13 +203,13 @@ class ClassicalModelManager(BaseCalcManager):
         logger.info('loading quote')
 
         data = self.get_daily_hists(self._symbols, data_start_date, self._end_date, market=market)
+        print(data)
 
-        calendar = self.get_calendar(market)
-        calendar = calendar[(calendar <= self._end_date) & (calendar >= self._start_date)]
+        calendar = self.get_calendar(start_date=self._start_date, end_date=self._end_date, market=market)
 
         for dt in calendar:
             period_start_date = self.get_date_offset(dt, self._bar_count, market)
-            period_data = data[(data['timestamp'] <= dt) & (data['timestamp'] >= period_start_date)]
+            period_data = data[(data.index <= dt) & (data.index >= period_start_date)]
             self._calc_date = dt.to_pydatetime()
             self.calc(period_data)
 

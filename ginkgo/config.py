@@ -23,7 +23,6 @@ def project_config_dir():
     return root
 
 
-
 def ensure_directory(path):
     """
     检查并新建目录
@@ -66,7 +65,7 @@ def generate_config_file(directory=None):
     if not directory:
         directory = PROJECT_CONFIG_DIR
     ensure_directory(directory)
-    default_config = os.path.join(_here, '..', _config_filename)
+    default_config = os.path.join(_here, _config_filename)
     custom_config = os.path.abspath(os.path.join(directory, _config_filename))
     shutil.copy(default_config, custom_config)
     return custom_config

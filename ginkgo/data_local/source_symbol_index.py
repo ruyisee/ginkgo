@@ -27,7 +27,7 @@ class ColSymbolIndex(Index):
 
     def ingest(self):
         logger.info('ingest symbol info')
-        return StandardQuoteIngester.ingest_symbols(self._market)
+        return StandardQuoteIngester.ingest_basic(self._market)
 
     def init(self):
         logger.info('init symbol info')
@@ -65,17 +65,21 @@ class ColSymbolIndex(Index):
             self._stock_contract_list.append(sc)
             self._symbol_contract_dict[row.symbol] = sc
 
-    def contract_from_symbol(self, symbol):
+    def contract_from_symbol(self, symbol, error='ignore'):
         try:
             return self._symbol_contract_dict[symbol]
         except KeyError as e:
-            return None
+            if error == 'ignore':
+                return None
+            raise ValueError(f'symbol `{symbol}` not exist')
 
-    def i_of(self, symbol):
+    def i_of(self, symbol, error='ignore'):
         try:
-            return self.contract_from_symbol(symbol).sid
+            return self.contract_from_symbol(symbol, error).sid
         except AttributeError as e:
-            return None
+            if error == 'ignore':
+                return None
+            raise
 
     def o_of(self, i):
         return self._stock_contract_list[i]
@@ -94,7 +98,7 @@ class ColSymbolIndex(Index):
     def codes(self):
         return self._contract_df['code'].to_list()
 
-    def contracts_filter(self, industry=None, area=None, board=None):
+    def contracts_filter(self, industry=None, area=None, board=None, symbol=True):
         if (industry is None) & (area is None) & (board is None):
             return self._stock_contract_list[:]
 
@@ -111,6 +115,8 @@ class ColSymbolIndex(Index):
         mask = industry_mask & area_mask & board_mask
 
         selected = self._contract_df.iloc[mask]['symbol']
+        if symbol:
+            return selected.to_list()
         contracts = []
         for c in selected:
             obj = self.contract_from_symbol(c)
