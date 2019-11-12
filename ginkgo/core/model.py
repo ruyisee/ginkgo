@@ -85,4 +85,5 @@ class SFrame:
         all_arr = np.concatenate(arr_list)
 
         data = pd.DataFrame(all_arr, index=index_obj, columns=self.columns)
+        data.reset_index(inplace=True)
         return data
