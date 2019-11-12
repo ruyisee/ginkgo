@@ -18,6 +18,7 @@ class DataProxy:
         self.get_calendar = self._daily_quote.get_calendar
         self.get_symbols = self._daily_quote.contracts_filter
         self.get_date_offset = self._daily_quote.get_date_offset
+        self.get_valid_date = self._daily_quote.get_valid_date
 
     def get_daily_hist(self, symbol, start_date, end_date, fields_list=None, br=False):
         frame = self._daily_quote.get_symbol_data(symbol, start_date, end_date, fields_list)

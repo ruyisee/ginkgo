@@ -6,6 +6,7 @@
 """
 
 from functools import lru_cache
+from prettyprinter import cpprint
 from ginkgo.utils.logger import logger
 from ginkgo.analysis.local_client import get_local_client
 
@@ -26,9 +27,9 @@ class BaseCalcManager:
 
     @staticmethod
     @lru_cache(4, False)
-    def get_calendar(market='CN'):
+    def get_calendar(start_date, end_date, market='CN'):
         client = get_local_client(market=market)
-        return client.get_calendar(None, None)
+        return client.get_calendar(start_date, end_date)
 
     def get_date_offset(self, dt, bar_count, market='US'):
         client = get_local_client(market=market)
@@ -42,8 +43,13 @@ class BaseCalcManager:
         return [const.symbol for const in constracts]
 
     @staticmethod
+    def get_valid_date(dt, market='CN'):
+        client = get_local_client(market=market)
+        return client.get_valid_date(dt)
+
+    @staticmethod
     def save(data):
-        print(data)
+        cpprint(data)
 
     def _winning_probability(self, forecast_data, forecast_days=(1, 3, 5), quote_data=None, market='US'):
         """

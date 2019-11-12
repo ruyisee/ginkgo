@@ -37,6 +37,7 @@ class QuoteModel(LocalDataBase):
         self.get_calendar = self._date_index.get_calendar
         self.contracts_filter = self._symbol_index.contracts_filter
         self.get_date_offset = self._date_index.offset
+        self.get_valid_date = self._date_index.get_valid_date
 
     def _check_dir(self, dirs):
         for d in dirs:
@@ -97,17 +98,17 @@ class QuoteModel(LocalDataBase):
     def save(self, data):
         data['sid'] = sids = data.symbol.apply(self._symbol_index.i_of)
         data['did'] = data.trade_date.apply(self._date_index.i_of)
-        data.dropna(how='any', inplace=True)
         logger.debug('[daily_bar_util] saving ohlcv:\n %s' % (data,))
         data['did'] = data['did'].astype('int')
         data['sid'] = data['sid'].astype('int')
+        did_calendar = list(range(min(data['did']), max(data['did'])+1))
         data.set_index(['did', 'sid'], inplace=True)
-
+        start_id = did_calendar[0]
+        end_id = did_calendar[-1]
         for field in self._fields_dict.values():
             single_field_data = data[field.name].unstack()
             single_field_data = single_field_data.sort_index().fillna(0)
-            start_id = single_field_data.index[0]
-            end_id = single_field_data.index[-1]
+            single_field_data = single_field_data.reindex(did_calendar, method='pad')
             for sid in single_field_data.columns:
                 mmp_obj = self._get_memmap_obj(feild_obj=field, sid=sid)
                 mmp_obj[start_id:end_id+1, sid % self._chunks_s_num] = \

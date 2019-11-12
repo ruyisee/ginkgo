@@ -42,7 +42,8 @@ class Frame:
         self.symbol = symbol
 
     def to_dataframe(self):
-        data = pd.DataFrame(self.arr, index=self.index, columns=self.columns)
+        data = pd.DataFrame(self.arr, columns=self.columns)
+        data['timestamp'] = self.index
         data['symbol'] = self.symbol
         return data
 

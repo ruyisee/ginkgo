@@ -2,3 +2,4 @@ tushare>=1.2.48
 pandas>=0.25.3
 numpy>=1.16.3
 Click>=7.0
+PrettyPrinter>=0.18.0
