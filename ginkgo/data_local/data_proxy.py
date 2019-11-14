@@ -35,7 +35,7 @@ class DataProxy:
 
 if __name__ == '__main__':
     dp = DataProxy()
-    df = dp.get_daily_hist('000023.SZ', 20190102, 20191101)
+    df = dp.get_daily_hist('000023.SZ', 20150102, 20191112)
     print(df.to_dataframe())
-    df = dp.get_daily_hist('000563.SZ', 20190102, 20191101)
+    df = dp.get_daily_hist('000563.SZ', 20190102, 20191112)
     print(df.to_dataframe())

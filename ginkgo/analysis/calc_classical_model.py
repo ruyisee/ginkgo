@@ -131,7 +131,7 @@ class ClassicalModelManager(BaseCalcManager):
 
     def calc(self, data):
         logger.info('cleaning invalid data')
-        # data.set_index(['timestamp', 'symbol'], inplace=True)
+        data.set_index(['timestamp', 'symbol'], inplace=True)
         _open_df = data['open'].unstack().dropna(axis=1, how='any')
         _high_df = data['high'].unstack().dropna(axis=1, how='any')
         _low_df = data['low'].unstack().dropna(axis=1, how='any')
@@ -203,14 +203,12 @@ class ClassicalModelManager(BaseCalcManager):
         logger.info('loading quote')
 
         data = self.get_daily_hists(self._symbols, data_start_date, self._end_date, market=market)
-        print(data)
-
         calendar = self.get_calendar(start_date=self._start_date, end_date=self._end_date, market=market)
 
         for dt in calendar:
             period_start_date = self.get_date_offset(dt, self._bar_count, market)
-            period_data = data[(data.index <= dt) & (data.index >= period_start_date)]
-            self._calc_date = dt.to_pydatetime()
+            period_data = data[(data['timestamp'] <= dt) & (data['timestamp'] >= period_start_date)]
+            self._calc_date = dt
             self.calc(period_data)
 
         logger.info('calc winning probability')

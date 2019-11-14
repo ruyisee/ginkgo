@@ -117,7 +117,7 @@ class BaseCalcManager:
                         except KeyError:
                             logger.debug(f'winning at {dt} con`t calc for quote is less {max(forecast_days)} after')
                             continue
-                        winning_pct = winning_count / symbols_number
+                        winning_pct = int(winning_count / symbols_number)
                         if direction == -1:
                             winning_pct = 1 - winning_pct
                         winning[name][d].append(winning_pct)

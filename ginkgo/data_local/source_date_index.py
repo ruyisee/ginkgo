@@ -7,6 +7,7 @@
 
 import os
 import pickle
+import pandas as pd
 from ginkgo.data_local.ingester import StandardQuoteIngester
 from ginkgo.data_local.interface import Index
 from ginkgo.utils.logger import logger
@@ -58,28 +59,40 @@ class RowDateIndex(Index):
         for i, name in enumerate(self._name_list):
             self._name_i_map[name] = i
         self._latest_date = self._name_list[-1]
+        self._name_index = pd.Series(self._name_list, dtype='uint32')
 
     def save(self, data):
         logger.info('saving date index')
         with open(self._index_path, 'wb+') as f:
             pickle.dump(data, f)
 
-    def i_of(self, name):
+    def i_of(self, name, vaild=False):
         name = int(name)
-        if (name < self._name_list[0]) or (name > self._name_list[-1]):
-            raise ValueError(f'date {name} out of {self._name_list[0]} - {self._name_list[-1]}')
+        if name < self._name_list[0]:
+            if vaild:
+                return 0
+            else:
+                raise ValueError(f'date {name} out of {self._name_list[0]} - {self._name_list[-1]}')
+        elif name > self._name_list[-1]:
+            if vaild:
+                return len(self.dates) - 1
+            else:
+                raise ValueError(f'date {name} out of {self._name_list[0]} - {self._name_list[-1]}')
         try:
             i = self._name_i_map[name]
         except KeyError:
-            i = None
+            if vaild:
+                return self.i_of(self._name_index[self._name_index <= name].iloc[-1], vaild=vaild)
+            else:
+                i = None
         return i
 
     def o_of(self, i):
         return self._name_list[i]
 
     def get_calendar(self, start_date, end_date):
-        start_id = self.i_of(start_date) if start_date else None
-        end_id = self.i_of(end_date) + 1 if end_date else None
+        start_id = self.i_of(start_date, vaild=True) if start_date else None
+        end_id = self.i_of(end_date, vaild=True) + 1 if end_date else None
         return self._name_list[start_id: end_id]
 
     @property
@@ -97,12 +110,5 @@ class RowDateIndex(Index):
         return self.o_of(offset_id)
 
     def get_valid_date(self, name):
-        if name <= self._name_list[0]:
-            return self._name_list[0]
-        elif name >= self._name_list[-1]:
-            return self._name_list[-1]
-        else:
-            i = self.i_of(name)
-            if i is None:
-                return self.get_valid_date(name-1)
-            return self._name_list[i]
+        i = self.i_of(name, vaild=True)
+        return self._name_list[i]

@@ -12,14 +12,14 @@ from ginkgo import COMMANDS_LIST
 
 
 @click.group()
-@click.help_option('-h', '--help')
+@click.help_option('-h', '--help', help='请选择要执行的command')
 @click.pass_context
 def cli(ctx):
     pass
 
 
 @cli.command()
-@click.help_option('-h', '--help')
+@click.help_option('-h', '--help', help='获取用户配置文件保存到~/.ginkgo/config.yml, 或者用户自定义位置')
 @click.pass_context
 def gen_config(ctx):
     generate_config_file()
@@ -38,7 +38,6 @@ def load_command():
 def entry_point():
     load_command()
     cli()
-
 
 
 if __name__ == '__main__':
