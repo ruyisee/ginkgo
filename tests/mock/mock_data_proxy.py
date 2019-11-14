@@ -4,11 +4,9 @@
 
 @since: 2019-11-14 22:31
 """
-import os
 from unittest.mock import Mock
 import pandas as pd
 from ginkgo.core.model import Frame, SFrame
-from ginkgo.data_local.data_proxy import DataProxy
 
 class MockDataProxy:
     def __init__(self, market='CN', category='stock'):
@@ -49,6 +47,7 @@ class MockDataProxy:
 
 
 def mock_data_proxy():
+    from ginkgo.data_local.data_proxy import DataProxy
     DataProxy = Mock()
     mdp = MockDataProxy()
     DataProxy.get_daily_hist = mdp.get_daily_hist
