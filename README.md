@@ -7,7 +7,7 @@
 ```
 git clone git@github.com:fsksf/ginkgo.git
 cd ginkgo
-pip install *
+pip install .
 ```
 
 ### 命令介绍
