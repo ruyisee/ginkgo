@@ -15,7 +15,7 @@ from ginkgo.data_local.util import datetime_to_int
 
 
 @cli.command()
-@click.help_option('-h', '--help')
+@click.help_option('-h', '--help', help='行情数据初始化')
 @click.option('-m', '--market', default='CN', help='市场, ALL, US, HK')
 @click.option('-ed', '--end_date', default=None, type=int)
 @click.option('-sd', '--start_date', default=None, type=int)
@@ -30,7 +30,7 @@ def quote_init(ctx, market, start_date, end_date, symbols, debug):
 
 
 @cli.command()
-@click.help_option('-h', '--help')
+@click.help_option('-h', '--help', '行情数据更新')
 @click.option('-m', '--market', default='CN', help='市场, ALL, US, HK')
 @click.option('-ed', '--end_date', default=None)
 @click.option('-sd', '--start_date', default=None)

@@ -15,7 +15,7 @@ from ginkgo.utils.logger import logger
 
 
 @cli.command()
-@click.help_option('-h', '--help')
+@click.help_option('-h', '--help', help='经典形态选股')
 @click.option('-m', '--market', default='CN', help='市场, ALL, US, HK')
 @click.option('-b', '--bar_count', default=None, help='向前取多少天的数据')
 @click.option('-wp', '--winning_period', default=60, help='向前取多少天的数据')
