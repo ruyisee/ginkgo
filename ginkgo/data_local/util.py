@@ -10,4 +10,4 @@ from datetime import datetime
 
 def datetime_to_int(dt, l=8):
     if l == 8:
-        return datetime.strftime(dt, '%Y%m%d')
+        return int(datetime.strftime(dt, '%Y%m%d'))
