@@ -7,6 +7,7 @@
 
 import os
 import pickle
+import pandas as pd
 from ginkgo.data_local.ingester import StandardQuoteIngester
 from ginkgo.data_local.interface import Index
 from ginkgo.utils.logger import logger
@@ -58,6 +59,7 @@ class RowDateIndex(Index):
         for i, name in enumerate(self._name_list):
             self._name_i_map[name] = i
         self._latest_date = self._name_list[-1]
+        self._name_index = pd.Series(self._name_list, dtype='uint32')
 
     def save(self, data):
         logger.info('saving date index')
@@ -80,7 +82,7 @@ class RowDateIndex(Index):
             i = self._name_i_map[name]
         except KeyError:
             if vaild:
-                return self.i_of(name-1, vaild)
+                return self.i_of(self._name_index[self._name_index <= name].iloc[-1], vaild=vaild)
             else:
                 i = None
         return i
