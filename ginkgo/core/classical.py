@@ -10,7 +10,7 @@
 import talib
 import numpy as np
 np.seterr(divide='ignore', invalid='ignore')
-from ginkgo.core.utils import continuous_change
+from ginkgo.core.common import continuous_change
 
 
 class Classical:

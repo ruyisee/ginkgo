@@ -96,6 +96,7 @@ class QuoteModel(LocalDataBase):
             self.save(data)
 
     def save(self, data):
+        logger.info(f'saving data.shape: {data.shape}')
         data['sid'] = sids = data.symbol.apply(self._symbol_index.i_of)
         data['did'] = data.trade_date.apply(self._date_index.i_of)
         logger.debug('[daily_bar_util] saving ohlcv:\n %s' % (data,))
