@@ -26,7 +26,12 @@ class FundmentalUtil:
                     retry_count += 1
                     try:
                         single = ts_pro.adj_factor(ts_code=code, start_date=start_date, end_date=end_date)
-                        split_list.append(single[['ts_code', 'trade_date', 'open', 'high', 'low', 'close', 'vol']])
+                        single = single.set_index('trade_date')['adj_factor'].sort_index()
+                        factors = single.shift(1) / single
+                        factors = factors[factors != 1.0].dropna()
+                        factors = factors.to_frame()
+                        factors['symbol'] = code
+                        split_list.append(factors)
                         break
                     except ConnectionError as e:
                         if retry_count == retry:
@@ -39,3 +44,8 @@ class FundmentalUtil:
         data = pd.concat(split_list, ignore_index=True)
         data.rename({'ts_code': 'symbol'}, inplace=True, axis=1)
         return data
+
+
+if __name__ == '__main__':
+    fct = FundmentalUtil.load_split(['600547.SH', '000001.SZ'], 20100101, 20191111)
+    print(fct)
