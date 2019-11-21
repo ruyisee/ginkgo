@@ -8,7 +8,7 @@
 import os
 import pickle
 import pandas as pd
-from ginkgo.data_local.ingester import StandardQuoteIngester
+from ginkgo.data_local.quote_ingester import StandardQuoteIngester
 from ginkgo.data_local.interface import Index
 from ginkgo.utils.logger import logger
 

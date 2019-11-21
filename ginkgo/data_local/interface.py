@@ -12,24 +12,37 @@ from ginkgo.utils.logger import logger
 
 class Ingester(abc.ABCMeta):
 
-    @staticmethod
-    def ingest_calender(start_date=None, end_date=None, market='CN'):
-        raise NotImplementedError
-
-    @staticmethod
-    def ingest_daily_quote(start_date, end_date, market='CN'):
-        raise NotImplementedError
-
-    @staticmethod
-    def ingest_split(start_date, end_date, market='CN'):
-        raise NotImplementedError
-
     @classmethod
     def merge(mcs, other_class):
         for name, method in other_class.__dict__.items():
             if not name.startswith('__'):
                 setattr(mcs, name, method)
         return mcs
+
+
+class QuoteIngester(Ingester):
+    @staticmethod
+    def ingest_calender(start_date=None, end_date=None, market='CN'):
+        raise NotImplementedError
+
+    @staticmethod
+    def ingest_daily_hists_v(start_date, end_date, market='CN'):
+        raise NotImplementedError
+
+    @staticmethod
+    def ingest_daily_hists_h(symbols, trade_dates, market):
+        raise NotImplementedError
+
+    @staticmethod
+    def ingest_basic(market='CN'):
+        raise NotImplementedError
+
+
+class FundamentalIngester(Ingester):
+
+    @staticmethod
+    def ingest_split(symbols, start_date, end_date, market='CN'):
+        raise NotImplementedError
 
 
 class LocalDataBase:

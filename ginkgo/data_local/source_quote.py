@@ -11,7 +11,7 @@ from collections import defaultdict
 from ginkgo.core.model import Frame, SFrame
 from ginkgo.data_local.source_date_index import RowDateIndex
 from ginkgo.data_local.source_symbol_index import ColSymbolIndex
-from ginkgo.data_local.ingester import StandardQuoteIngester
+from ginkgo.data_local.quote_ingester import StandardQuoteIngester
 from ginkgo.data_local.interface import LocalDataBase
 from ginkgo.data_local.fields import fields_manager, fields_dict
 from ginkgo.utils.logger import logger

@@ -9,7 +9,7 @@ import os
 import pandas as pd
 
 from ginkgo.core.model import StockContract
-from ginkgo.data_local.ingester import StandardQuoteIngester
+from ginkgo.data_local.quote_ingester import StandardQuoteIngester
 from ginkgo.data_local.interface import Index
 from ginkgo.utils.logger import logger
 

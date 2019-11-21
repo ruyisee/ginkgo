@@ -16,5 +16,8 @@ class Fundamental(LocalDataBase):
         self._market = market.upper()
         self.db_path = os.path.join(base_path, self._catgory, self._market)
 
+    def ingest(self, symbols, start_date, end_date):
+        pass
+
     def get_split(self, symbols, start_date, end_date):
         pass

@@ -6,7 +6,7 @@
 """
 import os
 from ginkgo import USER_CUSTOM_DIR
-from ginkgo.data_local.interface import Ingester
+from ginkgo.data_local.interface import QuoteIngester
 from ginkgo.utils.quote_util import QuoteUtil
 from ginkgo.utils.logger import logger
 
@@ -14,7 +14,7 @@ from ginkgo.utils.logger import logger
 INGESTER_FILE = os.path.join(USER_CUSTOM_DIR)
 
 
-class StandardQuoteIngester(Ingester):
+class StandardQuoteIngester(QuoteIngester):
 
     @staticmethod
     def ingest_calender(start_date=None, end_date=None, market='CN'):
@@ -31,10 +31,6 @@ class StandardQuoteIngester(Ingester):
     @staticmethod
     def ingest_daily_hists_h(symbols, trade_dates, market):
         return QuoteUtil.load_daily_hists_h(symbols, trade_dates, market=market)
-
-    @staticmethod
-    def ingest_split(start_date, end_date, market='CN'):
-        pass
 
 
 if os.path.exists(INGESTER_FILE):
