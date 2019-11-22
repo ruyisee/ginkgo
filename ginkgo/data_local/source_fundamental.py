@@ -8,6 +8,7 @@ import os
 from ginkgo.data_local.interface import LocalDataBase
 from ginkgo.data_local.fundmental_ingester import StandardFundamentalIngester
 from ginkgo.data_local.data_proxy import DataProxy
+from ginkgo.utils.logger import logger
 
 
 class Fundamental(LocalDataBase):

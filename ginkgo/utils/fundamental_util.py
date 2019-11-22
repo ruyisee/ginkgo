@@ -41,11 +41,28 @@ class FundmentalUtil:
         else:
             raise NotImplementedError
 
-        data = pd.concat(split_list, ignore_index=True)
+        data = pd.concat(split_list)
         data.rename({'ts_code': 'symbol'}, inplace=True, axis=1)
+        data.reset_index(inplace=True)
+        data['trade_date'] = data['trade_date'].astype('uint32')
         return data
 
 
 if __name__ == '__main__':
-    fct = FundmentalUtil.load_split(['600547.SH', '000001.SZ'], 20100101, 20191111)
+    fct = FundmentalUtil.load_split(['600547.SH', ], 20100101, 20191111)
     print(fct)
+    fct['trade_date'] = fct['trade_date'].astype('uint32')
+    fct_cumprod = fct.set_index('trade_date').sort_index()['adj_factor'][::-1].cumprod()[::-1]
+    print(fct_cumprod)
+    from ginkgo.data_local.data_proxy import DataProxy
+    dp = DataProxy()
+    prc = dp.get_daily_hist('600547.SH', 20100101, 20191111).to_dataframe()
+    print(prc)
+
+    close = prc.set_index('timestamp')['close']
+    print(close)
+    fct_cumprod = fct_cumprod.reindex(close.index, method='bfill').fillna(method='bfill').fillna(value=1.0)
+    print(fct_cumprod)
+    close_br = close * fct_cumprod
+    print(close_br)
+
