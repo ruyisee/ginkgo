@@ -88,6 +88,80 @@ class QuoteUtil:
         else:
             raise NotImplementedError
 
+    @staticmethod
+    def load_adj_factor_v(codes, start_date, end_date, market='CN'):
+        retry = 5
+        split_list = []
+        if market == 'CN':
+            for code in codes:
+                retry_count = 0
+                while retry_count < retry:
+                    time.sleep(0.6)
+                    retry_count += 1
+                    try:
+                        single = ts_pro.adj_factor(ts_code=code, start_date=start_date, end_date=end_date)
+                        single = single.set_index('trade_date')['adj_factor'].sort_index()
+                        factors = single.shift(1) / single
+                        factors = factors[factors != 1.0].dropna()
+                        factors = factors.to_frame()
+                        factors['symbol'] = code
+                        split_list.append(factors)
+                        break
+                    except ConnectionError as e:
+                        if retry_count == retry:
+                            raise
+                        else:
+                            time.sleep(3)
+        else:
+            raise NotImplementedError
+
+        data = pd.concat(split_list)
+        data.rename({'ts_code': 'symbol'}, inplace=True, axis=1)
+        data.reset_index(inplace=True)
+        data['trade_date'] = data['trade_date'].astype('uint32')
+        return data
+
+    @staticmethod
+    def load_adj_factor_h(symbols, trade_dates, market='CN'):
+        retry = 5
+        split_list = []
+        if isinstance(symbols, (tuple, list)):
+            symbols = ','.join(symbols)
+        if market == 'CN':
+            for trade_date in trade_dates:
+                retry_count = 0
+                while retry_count < retry:
+                    time.sleep(0.6)
+                    retry_count += 1
+                    try:
+                        single = ts_pro.adj_factor(ts_code=symbols, trade_date=trade_date)
+                        split_list.append(single)
+                        break
+                    except ConnectionError as e:
+                        if retry_count == retry:
+                            raise
+                        else:
+                            time.sleep(3)
+        else:
+            raise NotImplementedError
+
+        data = pd.concat(split_list)
+        factor_list = []
+        data.rename({'ts_code': 'symbol'}, inplace=True, axis=1)
+        for symbol in set(data['symbol']):
+            factors = data[data['symbol'] == symbol]
+            factors = factors.set_index('trade_date')['adj_factor'].sort_index()
+            factors = factors.shift(1) / factors
+            factors = factors[factors != 1.0].dropna()
+            factors = factors.to_frame()
+            factors['symbol'] = symbol
+            factor_list.append(factors)
+
+        data = pd.concat(factor_list)
+        data.reset_index(inplace=True)
+        data['trade_date'] = data['trade_date'].astype('uint32')
+        return data
+
 
 if __name__ == '__main__':
     symbols = QuoteUtil.load_basic()

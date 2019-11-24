@@ -32,6 +32,14 @@ class StandardQuoteIngester(QuoteIngester):
     def ingest_daily_hists_h(symbols, trade_dates, market):
         return QuoteUtil.load_daily_hists_h(symbols, trade_dates, market=market)
 
+    @staticmethod
+    def ingest_adj_factors_v(symbols, start_date, end_date, market='CN'):
+        return QuoteUtil.load_adj_factor_v(symbols, start_date, end_date, market)
+
+    @staticmethod
+    def ingest_adj_factors_h(symbols, trade_dates, market='CN'):
+        return QuoteUtil.load_adj_factor_h(symbols, trade_dates, market)
+
 
 if os.path.exists(INGESTER_FILE):
     from importlib import import_module

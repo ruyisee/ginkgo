@@ -41,7 +41,7 @@ class QuoteIngester(Ingester):
 class FundamentalIngester(Ingester):
 
     @staticmethod
-    def ingest_split(symbols, start_date, end_date, market='CN'):
+    def ingest_adj_factors(symbols, start_date, end_date, market='CN'):
         raise NotImplementedError
 
 

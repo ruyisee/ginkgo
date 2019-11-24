@@ -13,6 +13,7 @@ from ginkgo.data_local.source_date_index import RowDateIndex
 from ginkgo.data_local.source_symbol_index import ColSymbolIndex
 from ginkgo.data_local.quote_ingester import StandardQuoteIngester
 from ginkgo.data_local.interface import LocalDataBase
+from ginkgo.data_local.source_factor import AdjFactor
 from ginkgo.data_local.fields import fields_manager, fields_dict
 from ginkgo.utils.logger import logger
 
@@ -28,6 +29,7 @@ class QuoteModel(LocalDataBase):
         self._date_index = RowDateIndex(self._base_path, catgory=catgory, market=market)
         self._chunks_s_num = chunks_s_num
         self._symbol_index = ColSymbolIndex(self._base_path, chunks_s_num=chunks_s_num, catgory=catgory, market=market)
+        self._adj_factor = AdjFactor(base_path, self._symbol_index, self._date_index, catgory, market)
         self._fields_dir_path = \
             {field: os.path.join(self._base_path, f'{field.name}') for field in self._fields_dict.values()}
         self._check_dir(self._fields_dir_path.values())
@@ -63,12 +65,14 @@ class QuoteModel(LocalDataBase):
         return StandardQuoteIngester.ingest_daily_hists_h(symbols, trade_dates, self._market)
 
     def init(self, symbols, start_date, end_date):
-        self._date_index.init(start_date, end_date)
-        self._symbol_index.init()
+        # self._date_index.init(start_date, end_date)
+        # self._symbol_index.init()
         self.load(mode='w+')
-        for quote in self.ingest(symbols, start_date, end_date):
-            if not quote.empty:
-                self.save(quote)
+        # for quote in self.ingest(symbols, start_date, end_date):
+        #     if not quote.empty:
+        #         self.save(quote)
+
+        self._adj_factor.init(symbols, start_date, end_date)
 
     def update(self, end_date, start_date=None, symbols=None, f=False):
         self._symbol_index.update()
@@ -76,24 +80,26 @@ class QuoteModel(LocalDataBase):
         old_latest_date = self._date_index.update(end_date)
         if (old_latest_date is None) and (start_date is None):
             logger.info('quote no need to update')
-            return
-        elif start_date is not None:
-            if old_latest_date is not None:
-                if not f:
-                    start_date = min(start_date, old_latest_date + 1)
-                    logger.info(f'quote updating append {start_date} - {end_date}')
-                else:
-                    start_date = old_latest_date + 1
-                    logger.info(f'quote updating in situ {start_date} - {end_date}')
-            trade_dates = self._date_index.get_calendar(start_date, end_date)
-            data = self.ingest_h(symbols=symbols, trade_dates=trade_dates)
         else:
-            logger.info(f'quote updating append {old_latest_date + 1} - {end_date}')
-            trade_dates = self._date_index.get_calendar(old_latest_date+1, end_date)
-            data = self.ingest_h(symbols=symbols, trade_dates=trade_dates)
-        self.load('r+')
-        if not data.empty:
-            self.save(data)
+            if start_date is not None:
+                if old_latest_date is not None:
+                    if not f:
+                        start_date = min(start_date, old_latest_date + 1)
+                        logger.info(f'quote updating append {start_date} - {end_date}')
+                    else:
+                        start_date = old_latest_date + 1
+                        logger.info(f'quote updating in situ {start_date} - {end_date}')
+                trade_dates = self._date_index.get_calendar(start_date, end_date)
+                data = self.ingest_h(symbols=symbols, trade_dates=trade_dates)
+            else:
+                logger.info(f'quote updating append {old_latest_date + 1} - {end_date}')
+                trade_dates = self._date_index.get_calendar(old_latest_date+1, end_date)
+                data = self.ingest_h(symbols=symbols, trade_dates=trade_dates)
+            self.load('r+')
+            if not data.empty:
+                self.save(data)
+
+        self._adj_factor.update(symbols, end_date)
 
     def save(self, data):
         logger.info(f'saving data.shape: {data.shape}')
@@ -138,7 +144,7 @@ class QuoteModel(LocalDataBase):
     def fields_to_obj(self, fields_list):
         return [self._fields_dict[field_name] for field_name in fields_list]
 
-    def get_symbol_data(self, symbol, start_date, end_date, fields_list=None):
+    def get_symbol_data(self, symbol, start_date, end_date, fields_list=None, br=True):
         if fields_list is None:
             fields_list = list(self._fields_dict.keys())
         sid = self._symbol_index.i_of(symbol, error='raise')
@@ -154,17 +160,19 @@ class QuoteModel(LocalDataBase):
             fields_arr_list.append(arr)
 
         fields_arr = np.array(fields_arr_list).T
+        if br:
+            fields_arr = self._adj_factor.do_br(fields_arr, calendar, fields_list, symbol)
         frame = Frame(fields_arr, calendar, fields_list, symbol)
         return frame
 
-    def get_symbols_data(self, symbols, start_date, end_date, fields_list=None):
+    def get_symbols_data(self, symbols, start_date, end_date, fields_list=None, br=True):
         if isinstance(symbols, str):
             symbols = [symbols, ]
         if fields_list is None:
             fields_list = list(self._fields_dict.keys())
         sf = SFrame()
         for symbol in symbols:
-            frame = self.get_symbol_data(symbol, start_date, end_date, fields_list)
+            frame = self.get_symbol_data(symbol, start_date, end_date, fields_list, br)
             sf.add(frame)
 
         return sf
