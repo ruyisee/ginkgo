@@ -65,12 +65,12 @@ class QuoteModel(LocalDataBase):
         return StandardQuoteIngester.ingest_daily_hists_h(symbols, trade_dates, self._market)
 
     def init(self, symbols, start_date, end_date):
-        # self._date_index.init(start_date, end_date)
-        # self._symbol_index.init()
+        self._date_index.init(start_date, end_date)
+        self._symbol_index.init()
         self.load(mode='w+')
-        # for quote in self.ingest(symbols, start_date, end_date):
-        #     if not quote.empty:
-        #         self.save(quote)
+        for quote in self.ingest(symbols, start_date, end_date):
+            if not quote.empty:
+                self.save(quote)
 
         self._adj_factor.init(symbols, start_date, end_date)
 
