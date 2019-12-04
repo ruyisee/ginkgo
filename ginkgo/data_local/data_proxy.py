@@ -20,8 +20,8 @@ class DataProxy:
         self.get_date_offset = self._daily_quote.get_date_offset
         self.get_valid_date = self._daily_quote.get_valid_date
 
-    def get_daily_hist(self, symbol, start_date, end_date, fields_list=None, br=False):
-        frame = self._daily_quote.get_symbol_data(symbol, start_date, end_date, fields_list)
+    def get_daily_hist(self, symbol, start_date, end_date, fields_list=None, br=True):
+        frame = self._daily_quote.get_symbol_data(symbol, start_date, end_date, fields_list, br=br)
 
         return frame
 
@@ -36,6 +36,7 @@ class DataProxy:
 if __name__ == '__main__':
     dp = DataProxy()
     df = dp.get_daily_hist('000023.SZ', 20150102, 20191112)
-    print(df.to_dataframe())
+    df = df.to_dataframe()
+    print(df[df['timestamp'] <= 20190622].tail())
     df = dp.get_daily_hist('000563.SZ', 20190102, 20191112)
-    print(df.to_dataframe())
+    # print(df.to_dataframe())

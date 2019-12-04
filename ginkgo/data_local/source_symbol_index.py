@@ -40,7 +40,7 @@ class ColSymbolIndex(Index):
         logger.info('updating contract')
         new = self.ingest()
         old = self._contract_df['symbol']
-        to_update_df = new.set_index('symbol').drop(old).reset_index()
+        to_update_df = new.set_index('symbol').drop(old, errors='ignore').reset_index()
         if not to_update_df.empty:
             logger.info(f'update contracts {to_update_df["symbol"].to_list()}')
             self._contract_df = self._contract_df.append(to_update_df)
