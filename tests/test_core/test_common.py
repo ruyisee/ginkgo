@@ -6,7 +6,7 @@
 """
 import pytest
 from ginkgo.data_local.data_proxy import DataProxy
-from ginkgo.core.common import zigzag
+from ginkgo.core.analysis_util import zigzag
 
 from tests.mock.mock_data_proxy import mock_data_proxy
 
