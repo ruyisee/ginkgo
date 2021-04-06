@@ -10,38 +10,37 @@
 import numpy as np
 from ginkgo.core.classical_base import ClassicalBase
 from ginkgo.core.analysis_util import moving_average, current_position
-from ginkgo import classical_conf
 
 np.seterr(divide='ignore', invalid='ignore')
 
-THREE_RED_SOLDIERS_GROWTH_MAX_LIMIT = classical_conf['three_red_soldiers']['close_growth_max_limit']
-THREE_RED_SOLDIERS_GROWTH_MIN_LIMIT = classical_conf['three_red_soldiers']['close_growth_min_limit']
-THREE_RED_SOLDIERS_OPEN_PCT_MIN_LIMIT = classical_conf['three_red_soldiers']['open_pct_min_limit']
-THREE_RED_SOLDIERS_HIGH_PCT_MAX_LIMIT = classical_conf['three_red_soldiers']['high_pct_max_limit']
+THREE_RED_SOLDIERS_GROWTH_MAX_LIMIT = 0.05    # 每日增长最大限制
+THREE_RED_SOLDIERS_GROWTH_MIN_LIMIT = 0.01    # 每日增长最小限制
+THREE_RED_SOLDIERS_OPEN_PCT_MIN_LIMIT = 0.5         # 开盘价在昨日实体百分比位置
+THREE_RED_SOLDIERS_HIGH_PCT_MAX_LIMIT = 0.012       # 上影线最大比例限制
 
-THREE_CROW_OPEN_POS_PCT = classical_conf['three_crow']['open_pos_pct']
-THREE_CROW_LOW_PCT = classical_conf['three_crow']['low_pct']
+THREE_CROW_OPEN_POS_PCT = 0.5
+THREE_CROW_LOW_PCT = 0.012                  # 下影线比例
 
-MULTI_CANNON_GROWTH_PCT_MIN = classical_conf['multi_cannon']['growth_pct_min']
+MULTI_CANNON_GROWTH_PCT_MIN = 0.03
 
-MORNING_STAR_BODY_CHANGE_PCT_3 = classical_conf['morning_star']['body_change_pct_3']
-MORNING_STAR_BODY_CHANGE_PCT_2 = classical_conf['morning_star']['body_change_pct_2']
-MORNING_STAR_BODY_CHANGE_PCT_1 = classical_conf['morning_star']['body_change_pct_1']
+MORNING_STAR_BODY_CHANGE_PCT_3 = 0.05   # 倒数第三天下跌百分比
+MORNING_STAR_BODY_CHANGE_PCT_2 = 0.03   # 倒数第二天star 涨跌不超过
+MORNING_STAR_BODY_CHANGE_PCT_1 =  0.05   # 倒数第一天上涨百分比
 
-DUCK_HEAD_MIN_PERIOD = classical_conf['duck_head']['min_period']
-DUCK_HEAD_MIN_FALL_COUNT = classical_conf['duck_head']['min_fall_count']
-DUCK_HEAD_MID_PERIOD = classical_conf['duck_head']['mid_period']
-DUCK_HEAD_MID_GROWTH_COUNT = classical_conf['duck_head']['mid_growth_count']
-DUCK_HEAD_MAX_PERIOD = classical_conf['duck_head']['max_period']
-DUCK_HEAD_LOW_MA_RATIO = classical_conf['duck_head']['low_ma_ratio']
+DUCK_HEAD_MIN_PERIOD = 8
+DUCK_HEAD_MIN_FALL_COUNT = 6
+DUCK_HEAD_MID_PERIOD = 18
+DUCK_HEAD_MID_GROWTH_COUNT = 15
+DUCK_HEAD_MAX_PERIOD = 55
+DUCK_HEAD_LOW_MA_RATIO = 0.03
 
-GOLDEN_CROSS_MIN_PERIOD = classical_conf['golden_cross']['min_period']
-GOLDEN_CROSS_MID_PERIOD = classical_conf['golden_cross']['mid_period']
-GOLDEN_CROSS_MAX_PERIOD = classical_conf['golden_cross']['max_period']
+GOLDEN_CROSS_MIN_PERIOD = 5
+GOLDEN_CROSS_MID_PERIOD = 10
+GOLDEN_CROSS_MAX_PERIOD = 20
 
-DEAD_CROSS_MIN_PERIOD = classical_conf['dead_cross']['min_period']
-DEAD_CROSS_MID_PERIOD = classical_conf['dead_cross']['mid_period']
-DEAD_CROSS_MAX_PERIOD = classical_conf['dead_cross']['max_period']
+DEAD_CROSS_MIN_PERIOD = 5
+DEAD_CROSS_MID_PERIOD = 10
+DEAD_CROSS_MAX_PERIOD = 20
 
 
 class Classical(ClassicalBase):

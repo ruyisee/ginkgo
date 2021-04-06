@@ -16,7 +16,7 @@ def read(fname):
 setup(
     name='tinigine',
     version=read('tinigine/VERSION.txt'),
-    packages=['tinigine', 'tinigine.core', 'tinigine.utils', 'tinigine.samples'],
+    packages=['tinigine', 'tinigine.core', 'tinigine.samples'],
     author='fsksf',
     author_email='timeless.go@foxmail.com',
     description='stock local data',

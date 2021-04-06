@@ -11,14 +11,14 @@ from ginkgo.core.analysis_util import zigzag
 
 from ginkgo import classical_conf
 
-EXT_DEPTH = classical_conf['find_corner']['ext_depth']
-EXT_DEVIATION = classical_conf['find_corner']['ext_deviation']
-EXT_BACKSTEP = classical_conf['find_corner']['ext_backstep']
+EXT_DEPTH = 12
+EXT_DEVIATION = 0.1
+EXT_BACKSTEP = 3
 
-W_FORM_VOLATILITY = classical_conf['w_form']['volatility']
-W_FORM_COUNT_LIMIT = classical_conf['w_form']['count_limit']
-M_FORM_VOLATILITY = classical_conf['m_form']['volatility']
-M_FORM_COUNT_LIMIT = classical_conf['m_form']['count_limit']
+W_FORM_VOLATILITY = 0.05
+W_FORM_COUNT_LIMIT = 1
+M_FORM_VOLATILITY = 0.05
+M_FORM_COUNT_LIMIT = 1
 
 
 class ComplexForm(ClassicalBase):

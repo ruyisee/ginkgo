@@ -8,16 +8,17 @@ import numpy as np
 
 from ginkgo import conf
 
-analysis_conf = conf['analysis']
 
-CN_VOLUME = analysis_conf['remove_cent']['cm_volume']
-CN_PRICE = analysis_conf['remove_cent']['cn_price']
-US_VOLUME = analysis_conf['remove_cent']['us_volume']
-US_PRICE = analysis_conf['remove_cent']['us_price']
+# 去毛票
 
-POSITION_REVERSE_RATIO = analysis_conf['current_position']['reverse_ratio']
-POSITION_PLATFORM_VOLATILITY = analysis_conf['current_position']['platform_volatility']
-POSITION_BREAK_RATIO = analysis_conf['current_position']['break_ratio']
+CN_VOLUME = 1000
+CN_PRICE = 1
+US_VOLUME = 30000
+US_PRICE = 3
+
+POSITION_REVERSE_RATIO = 0.2                                            # 翻转涨跌幅
+POSITION_PLATFORM_VOLATILITY = 0.01                                     # 平台波动限制
+POSITION_BREAK_RATIO = 0.1                                              # 平台突破最小波动
 
 
 def moving_average(a, n=3):
