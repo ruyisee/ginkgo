@@ -14,11 +14,10 @@ def read(fname):
 
 
 setup(
-    name='ginkgo',
-    version=read('ginkgo/VERSION.txt'),
-    packages=['ginkgo', 'ginkgo.analysis', 'ginkgo.core', 'ginkgo.data_local',
-              'ginkgo.utils'],
-    author='ksf',
+    name='tinigine',
+    version=read('tinigine/VERSION.txt'),
+    packages=['tinigine', 'tinigine.core', 'tinigine.samples'],
+    author='fsksf',
     author_email='timeless.go@foxmail.com',
     description='stock local data',
     package_data={'': ['*.*']},
@@ -26,7 +25,7 @@ setup(
     url='https://github.com/fsksf/ginkgo',
     entry_points={
         "console_scripts": [
-            "ginkgo = ginkgo.__main__:entry_point"
+            "tinigine = tinigine.__main__:entry"
         ]
     },
     install_requires=read('requirements.txt')

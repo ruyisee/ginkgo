@@ -41,9 +41,13 @@ class MockDataProxy:
                 dt = self._calendar[self._calendar >= start_date].iloc[-bar_count]
             except KeyError:
                 dt = self._calendar[-1]
+        return dt
 
     def get_vaild_date(self, name):
         return self.get_date_offset(name, bar_count=0)
+
+    def get_symbols(self, industry=None, area=None, board=None, symbol=True):
+        return list(set(self._daily_quote_df['symbol']))
 
 
 def mock_data_proxy():
@@ -55,5 +59,5 @@ def mock_data_proxy():
     DataProxy.get_calendar = mdp.get_calendar
     DataProxy.get_date_offset = mdp.get_date_offset
     DataProxy.get_split = None
-    DataProxy.get_symbols = None
-    DataProxy.get_valid_date =
+    DataProxy.get_symbols = mdp.get_daily_hist
+    DataProxy.get_valid_date = mdp.get_vaild_date
